@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Book Parking Spot - Parking App{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Book {{ spot.parking_name }}</h1>
+        <form method="post" class="booking-form" id="bookingForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_start_time">Start Time:</label>
+                {{ form.start_time }}
+            </div>
+            <div class="form-group">
+                <label for="id_end_time">End Time:</label>
+                {{ form.end_time }}
+            </div>
+            <div class="form-group">
+                <label for="id_vehicle_number">Vehicle Number:</label>
+                {{ form.vehicle_number }}
+            </div>
+            {% if total_price %}
+                <div class="price-display">
+                    <p>Total Price: €{{ total_price|floatformat:2 }}</p>
+                </div>
+            {% endif %}
+            {% if form.errors %}
+                <div class="error-messages">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <button type="submit" class="submit-btn">Book Now</button>
+        </form>
+    </div>
+
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+        }
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            padding: 10px;
+            cursor: pointer;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 10px;
+            }
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Logged Out - Parking App{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Logged Out</h1>
+        <p>You have been successfully logged out. see you again!S</p>
+        <p><a href="{% url 'login' %}" class="button">Login again</a></p>
+        <p><a href="{% url 'parking:parking_list' %}" class="link">View Parking Spots</a></p>
+    </div>
+
+    <style>
+        .container {
+            max-width: 400px;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        p {
+            text-align: center;
+            color: #555;
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .link {
+            color: #007bff;
+            text-decoration: none;
+            display: block;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}

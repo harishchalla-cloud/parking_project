@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings - Parking App{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>My Bookings</h1>
+        <ul class="booking-list">
+            {% for booking in bookings %}
+                <li class="booking-item">
+                    <div class="booking-details">
+                        <strong class="booking-name">{{ booking.spot.parking_spot.parking_name }} - {{ booking.spot.spot_number }}</strong>
+                        <p class="booking-info">Start: {{ booking.start_time }}</p>
+                        <p class="booking-info">End: {{ booking.end_time }}</p>
+                        <p class="booking-info">Vehicle: {{ booking.vehicle_number }}</p>
+                        <p class="booking-info">Price: €{{ booking.total_price|floatformat:2 }}</p>
+                    </div>
+                    <div class="action-links">
+                        <a href="{% url 'parking:modify_booking' booking.booking_id %}" class="modify-btn">Modify</a>
+                        <a href="{% url 'parking:cancel_booking' booking.booking_id %}" class="cancel-btn">Cancel</a>
+                    </div>
+                </li>
+            {% empty %}
+                <li class="no-bookings">No bookings yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .booking-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .booking-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .booking-details {
+            flex: 1;
+            min-width: 250px;
+        }
+        .booking-info {
+            margin: 5px 0;
+        }
+        .action-links {
+            display: flex;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        .modify-btn, .cancel-btn {
+            padding: 8px 12px;
+            text-decoration: none;
+        }
+        .no-bookings {
+            text-align: center;
+            padding: 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 0 10px;
+            }
+            .booking-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .action-links {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+            .modify-btn, .cancel-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+{% endblock %}

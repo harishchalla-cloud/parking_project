@@ -1,0 +1,6 @@
+/* Basic styles for consistency */
+body { font-family: Arial, sans-serif; }
+h1 { color: #333; }
+a { color: #007bff; }
+button, .button { background-color: #4CAF50; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+button:hover, .button:hover { background-color: #45a049; }

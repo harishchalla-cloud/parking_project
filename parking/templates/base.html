@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Parking App{% endblock %}</title>
+    <link rel="stylesheet" href="https://x23417498-parking-s3.s3.amazonaws.com/static/css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <ul>
+            <li><a href="{% url 'parking:parking_list' %}">Home</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'parking:profile' %}">Profile</a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'parking:signup' %}">Signup</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <style>
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+        }
+        .navbar ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+        .navbar li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+        }
+        .navbar li a:hover {
+            background-color: #555;
+            border-radius: 5px;
+        }
+        .content {
+            margin: 20px;
+        }
+    </style>
+</body>
+</html>

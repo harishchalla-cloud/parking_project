@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Modify Booking - Parking App{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Modify Booking for {{ booking.spot.parking_spot.parking_name }}</h1>
+        <form method="post" class="modify-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_start_time">Start Time:</label>
+                {{ form.start_time }}
+            </div>
+            <div class="form-group">
+                <label for="id_end_time">End Time:</label>
+                {{ form.end_time }}
+            </div>
+            <div class="form-group">
+                <label for="id_vehicle_number">Vehicle Number:</label>
+                {{ form.vehicle_number }}
+            </div>
+            {% if form.errors %}
+                <div class="error-messages">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <button type="submit" class="submit-btn">Update Booking</button>
+        </form>
+    </div>
+
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+        }
+        .modify-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            padding: 10px;
+            cursor: pointer;
+            align-self: center;
+            width: 50%;
+        }
+        .error-messages {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 10px;
+            }
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock %}
