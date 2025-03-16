@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class ParkingUtils:
     def __init__(self, media_bucket_name, static_bucket_name):
         self.s3_client = boto3.client('s3')
-        self.sns_client = boto3.client('sns')
+        self.sns_client = boto3.client('sns', region_name='us-east-1')
         self.media_bucket = media_bucket_name
         self.static_bucket = static_bucket_name
 
