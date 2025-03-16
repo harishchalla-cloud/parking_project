@@ -31,6 +31,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}  # Added for temporary credentials
           application_name: parkingapp
           environment_name: Parkingapp-env
           version_label: ${{ github.sha }}  # Unique version from commit SHA
