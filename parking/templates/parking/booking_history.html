@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Booking History{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Booking History</h1>
+        <ul class="booking-list">
+            {% for booking in bookings %}
+                <li class="booking-item">
+                    <div class="booking-info">
+                        <span>{{ booking.spot.parking_spot.parking_name }}</span>
+                        <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
+                        <span>€{{ booking.total_price|floatformat:2 }}</span>
+                    </div>
+                </li>
+            {% empty %}
+                <li class="no-bookings">No past bookings found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #e67e22;
+        }
+        .booking-list {
+            list-style: none;
+            padding: 0;
+        }
+        .booking-item {
+            padding: 1.5rem;
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .booking-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    </style>
+{% endblock %}

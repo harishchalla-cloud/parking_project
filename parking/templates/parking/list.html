@@ -1,64 +1,129 @@
 {% extends 'base.html' %}
-{% block title %}Parking Spots - Parking App{% endblock %}
+{% block title %}Parking Spots{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Parking Spots</h1>
+        <h1>Explore Parking Spots</h1>
         <form method="get" class="search-form">
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by location or name">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by location or name...">
             <button type="submit">Search</button>
         </form>
-        <div class="spot-list">
-            {% if spots %}
-                {% for spot in spots %}
-                    <div class="spot-item">
-                        <h2>{{ spot.parking_name }}</h2>
+        <div class="spot-grid">
+            {% for spot in spots %}
+                <div class="spot-card">
+                    {% if spot.image_url %}
+                        <img src="{{ spot.image_url }}" alt="{{ spot.parking_name }}" class="spot-image">
+                    {% endif %}
+                    <h2>{{ spot.parking_name }}</h2>
+                    <div class="spot-details">
                         <p><strong>Location:</strong> {{ spot.location }}</p>
                         <p><strong>Price:</strong> €{{ spot.price|floatformat:2 }}/hour</p>
-                        <p><strong>Available Spots:</strong> {{ spot.available_spots.count }}</p>
-                        {% if spot.image %}
-                            {% if spot.image|slice:":4" == "http" %}
-                                <img src="{{ spot.image }}" alt="{{ spot.parking_name }}" class="spot-image">
-                            {% else %}
-                                <img src="{{ spot.image.url }}" alt="{{ spot.parking_name }}" class="spot-image">
-                            {% endif %}
-                        {% endif %}
-                        {% if spot.is_available %}
-                            <a href="{% url 'parking:book_spot' spot.spot_id %}" class="book-btn">Book Now</a>
-                        {% else %}
-                            <p class="unavailable">No spots available</p>
-                        {% endif %}
+                        <p><strong>Available:</strong> {{ spot.available_spots.count }}</p>
                     </div>
-                {% endfor %}
-            {% else %}
-                <p>No parking spots available in the system.</p>
-            {% endif %}
+                    {% if spot.is_available %}
+                        <a href="{% url 'parking:book_spot' spot.spot_id %}" class="btn btn-primary">Book Now</a>
+                    {% else %}
+                        <span class="unavailable">Fully Booked</span>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="no-spots">No parking spots found.</p>
+            {% endfor %}
         </div>
     </div>
-
     <style>
-        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
-        .search-form { margin-bottom: 20px; display: flex; gap: 10px; }
-        .search-form input { padding: 8px; flex: 1; }
-        .search-form button { padding: 8px 15px; }
-        .spot-list { display: flex; flex-wrap: wrap; gap: 20px; }
-        .spot-item { flex: 1 1 300px; padding: 15px; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .search-form {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto 2rem;
+            gap: 1rem;
+        }
+        .search-form input {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 25px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #2c3e50;
+        }
+        .search-form button {
+            padding: 0.8rem 2rem;
+            background: #00ddeb;
+            color: #1b14d8;
+            border: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .search-form button:hover { background: #00b7c2; }
+        .spot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .spot-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-align: center;
+            color: #2c3e50;
+        }
+        .spot-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
         .spot-image {
             width: 100%;
-            height: 200px;
+            height: 250px;
             object-fit: cover;
-            margin-top: 10px;
-            border-radius: 5px;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            image-rendering: high-quality;
         }
-        .book-btn {
+        .spot-details {
+            margin-bottom: 1.5rem; /* Space between details and button */
+        }
+        .spot-details p {
+            margin: 0.5rem 0; /* Spacing between detail lines */
+        }
+        .btn-primary {
             display: inline-block;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
+            background: #195ec7;
+            color: #e1cf18;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
-        .book-btn:hover { background-color: #45a049; }
-        .unavailable { color: #d32f2f; }
+        .btn-primary:hover {
+            background: #00b7c2;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 221, 235, 0.4);
+        }
+        .unavailable {
+            color: #e74c3c;
+            font-weight: 600;
+            display: block;
+            margin-top: 1.5rem; /* Consistent spacing */
+        }
+        .no-spots {
+            text-align: center;
+            color: #fff;
+            font-size: 1.5rem;
+            padding: 2rem;
+        }
     </style>
 {% endblock %}

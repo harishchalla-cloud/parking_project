@@ -1,68 +1,56 @@
 {% extends 'base.html' %}
-{% block title %}Booking Confirmation - Parking App{% endblock %}
+{% block title %}Booking Confirmation{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Booking Confirmation</h1>
-        <p class="intro-text">Thank you for your booking! Here are the details:</p>
-        <div class="confirmation-details">
+        <h1>Booking Confirmed!</h1>
+        <div class="confirmation-box">
+            <p>Your booking details:</p>
             <ul>
-                <li><span class="label">Parking Spot:</span> {{ booking.spot.parking_spot.parking_name }}</li>
-                <li><span class="label">Spot Number:</span> {{ booking.spot.spot_number }}</li>
-                <li><span class="label">Location:</span> {{ booking.spot.parking_spot.location }}</li>
-                <li><span class="label">Start Time:</span> {{ booking.start_time }}</li>
-                <li><span class="label">End Time:</span> {{ booking.end_time }}</li>
-                <li><span class="label">Vehicle Number:</span> {{ booking.vehicle_number }}</li>
-                <li><span class="label">Total Price:</span> €{{ booking.total_price|floatformat:2 }}</li>
+                <li><span>Spot:</span> {{ booking.spot.parking_spot.parking_name }}</li>
+                <li><span>Number:</span> {{ booking.spot.spot_number }}</li>
+                <li><span>Location:</span> {{ booking.spot.parking_spot.location }}</li>
+                <li><span>Start:</span> {{ booking.start_time }}</li>
+                <li><span>End:</span> {{ booking.end_time }}</li>
+                <li><span>Vehicle:</span> {{ booking.vehicle_number }}</li>
+                <li><span>Price:</span> €{{ booking.total_price|floatformat:2 }}</li>
             </ul>
+            <a href="{% url 'parking:my_bookings' %}" class="btn btn-primary">My Bookings</a>
         </div>
-        <a href="{% url 'parking:my_bookings' %}" class="view-bookings-btn">View My Bookings</a>
     </div>
-
     <style>
         .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 15px;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        .confirmation-details {
-            padding: 15px;
+        h1 {
+            text-align: center;
+            color: #2ecc71;
+            text-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
         }
-        ul {
-            list-style-type: none;
+        .confirmation-box {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        .confirmation-box ul {
+            list-style: none;
             padding: 0;
         }
-        li {
+        .confirmation-box li {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 0.8rem 0;
         }
-        .label {
-            min-width: 150px;
-        }
-        .view-bookings-btn {
+        .btn-primary {
             display: block;
-            width: 60%;
-            margin: 20px auto 0;
-            padding: 10px;
-            text-align: center;
-            text-decoration: none;
-        }
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 10px;
-            }
-            li {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .label {
-                min-width: 0;
-                margin-bottom: 5px;
-            }
-            .view-bookings-btn {
-                width: 100%;
-            }
+            margin: 2rem auto 0;
+            background: #00ddeb;
+            color: #1e3c72;
         }
     </style>
 {% endblock %}

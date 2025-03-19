@@ -11,7 +11,7 @@ class ParkingSpot(models.Model):
     parking_name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     total_spots = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    price = models.DecimalField(max_digits=6, decimal_places=2)  # Price per hour
     image = models.ImageField(upload_to='parking_spots/', blank=True, null=True)
 
     class Meta:
@@ -89,3 +89,12 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking {self.booking_id} by {self.user.username} for {self.spot}"
+
+    def is_active(self):
+        """Check if the booking is still active."""
+        return self.end_time > timezone.now()
+
+    def calculate_price(self):
+        """Calculate total price based on duration and spot price."""
+        duration = (self.end_time - self.start_time).total_seconds() / 3600  # Hours
+        return round(self.spot.parking_spot.price * duration, 2)

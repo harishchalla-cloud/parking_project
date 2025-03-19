@@ -1,74 +1,48 @@
 {% extends 'base.html' %}
-{% block title %}Profile - Parking App{% endblock %}
+{% block title %}Profile{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Profile</h1>
+        <h1>Your Profile</h1>
         <div class="profile-card">
-            <p class="welcome-text">Welcome, <span class="highlight">{{ user.username }}</span>!</p>
-            <div class="profile-details">
-                <p><span class="label">First Name:</span> {{ user.first_name|default:"Not set" }}</p>
-                <p><span class="label">Last Name:</span> {{ user.last_name|default:"Not set" }}</p>
-                <p><span class="label">Email:</span> {{ user.email|default:"Not set" }}</p>
-            </div>
-        </div>
-        <div class="action-buttons">
-            <a href="{% url 'parking:parking_list' %}" class="spots-btn">View Parking Spots</a>
+            <p><strong>Welcome, {{ user.username }}!</strong></p>
+            <ul>
+                <li><span>First Name:</span> {{ user.first_name|default:"Not set" }}</li>
+                <li><span>Last Name:</span> {{ user.last_name|default:"Not set" }}</li>
+                <li><span>Email:</span> {{ user.email|default:"Not set" }}</li>
+            </ul>
+            <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">Back to Spots</a>
         </div>
     </div>
-
     <style>
         .container {
             max-width: 600px;
-            margin: 20px auto;
-            padding: 0 15px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            color: #f1c40f;
         }
         .profile-card {
-            padding: 20px;
-            margin-bottom: 20px;
+            background: linear-gradient(45deg, #f1c40f, #69af46);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        .welcome-text {
-            text-align: center;
-            margin-bottom: 15px;
+        .profile-card ul {
+            list-style: none;
+            padding: 0;
         }
-        .profile-details p {
-            margin: 10px 0;
+        .profile-card li {
             display: flex;
             justify-content: space-between;
+            padding: 0.8rem 0;
         }
-        .label {
-            min-width: 120px;
-        }
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .spots-btn {
-            padding: 10px;
-            text-decoration: none;
-            width: 200px;
-            text-align: center;
-        }
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 0 10px;
-            }
-            .profile-details p {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .label {
-                min-width: 0;
-                margin-bottom: 5px;
-            }
-            .spots-btn {
-                width: 100%;
-            }
-            .action-buttons {
-                gap: 10px;
-            }
+        .btn-primary {
+            background: #3498db;
+            color: #fff;
+            display: block;
+            margin: 2rem auto 0;
         }
     </style>
 {% endblock %}

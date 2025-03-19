@@ -29,10 +29,11 @@ class ParkingSpotAdmin(admin.ModelAdmin):
                 with open(temp_path, 'wb') as f:
                     for chunk in image_file.chunks():
                         f.write(chunk)
-                utils.resize_image(temp_path, temp_path)  # Uploads to S3
-                obj.image = f"parking_spots/{image_file.name}"  # Store S3 path
+                # Upload original image (no resizing)
+                utils.resize_image(temp_path, temp_path)  # No size param = original
+                obj.image = f"parking_spots/{image_file.name}"
                 os.remove(temp_path)
-                logger.debug(f"Uploaded resized image to S3: {obj.image}")
+                logger.debug(f"Uploaded image to S3: {obj.image}")
             super().save_model(request, obj, form, change)
             logger.debug(f"Model saved: {obj}")
         except Exception as e:

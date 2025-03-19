@@ -105,16 +105,6 @@ STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # SNS Configuration
 SNS_TOPIC_ARN = config('SNS_TOPIC_ARN')
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {'aws': {'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'}},
-    'handlers': {'console': {'class': 'logging.StreamHandler', 'level': 'DEBUG', 'formatter': 'aws'}},
-    'loggers': {
-        'django': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
-        'parking': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
-    },
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
