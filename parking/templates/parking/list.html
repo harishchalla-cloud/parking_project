@@ -15,8 +15,8 @@
                         <p><strong>Location:</strong> {{ spot.location }}</p>
                         <p><strong>Price:</strong> €{{ spot.price|floatformat:2 }}/hour</p>
                         <p><strong>Available Spots:</strong> {{ spot.available_spots.count }}</p>
-                        {% if spot.image_url %}
-                            <img src="{{ spot.image_url }}" alt="{{ spot.parking_name }}" class="spot-image">
+                        {% if spot.image %}
+                            <img src="{{ spot.image.url }}" alt="{{ spot.parking_name }}" class="spot-image">
                         {% endif %}
                         {% if spot.is_available %}
                             <a href="{% url 'parking:book_spot' spot.spot_id %}" class="book-btn">Book Now</a>

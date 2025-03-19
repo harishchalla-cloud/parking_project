@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import ParkingSpot, Booking, Spot
 from .parking_utils import ParkingUtils
 import logging
+import os
+import tempfile
 
 logger = logging.getLogger('django')
 
@@ -22,14 +24,16 @@ class ParkingSpotAdmin(admin.ModelAdmin):
             if 'image' in request.FILES:
                 image_file = request.FILES['image']
                 logger.debug(f"Processing image: {image_file.name}, size: {image_file.size}")
-                temp_path = f"/tmp/{image_file.name}"
+                temp_dir = tempfile.gettempdir()
+                temp_path = os.path.join(temp_dir, image_file.name)
                 with open(temp_path, 'wb') as f:
                     for chunk in image_file.chunks():
                         f.write(chunk)
-                obj.image = utils.resize_image(temp_path, temp_path)
+                utils.resize_image(temp_path, temp_path)  # Uploads to S3
+                obj.image = f"parking_spots/{image_file.name}"  # Store S3 path
                 os.remove(temp_path)
                 logger.debug(f"Uploaded resized image to S3: {obj.image}")
-            obj.save()
+            super().save_model(request, obj, form, change)
             logger.debug(f"Model saved: {obj}")
         except Exception as e:
             logger.error(f"Error saving model: {str(e)}")
