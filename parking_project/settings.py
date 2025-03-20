@@ -20,7 +20,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 IS_LOCAL = 'runserver' in sys.argv
 logger = logging.getLogger(__name__)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,44.214.76.222,<your-eb-domain>', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='3.224.197.135,127.0.0.1,localhost,44.214.76.222,parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com', cast=lambda v: [s.strip() for s in v.split(',')])
 logger.info(f"DEBUG={DEBUG}, IS_LOCAL={IS_LOCAL}, ALLOWED_HOSTS={ALLOWED_HOSTS}")
 
 INSTALLED_APPS = [
@@ -82,7 +82,7 @@ DATABASES = {
 # AWS Credentials
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=os.getenv('AWS_ACCESS_KEY_ID'))
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=os.getenv('AWS_SECRET_ACCESS_KEY'))
-AWS_REGION = config('AWS_REGION', default='us-east-1')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 
 # AWS S3 - Media Files
 AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-s3'

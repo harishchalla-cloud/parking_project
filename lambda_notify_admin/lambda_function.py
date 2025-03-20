@@ -7,7 +7,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Initialize SNS client
-sns_client = boto3.client('sns')
+region = os.getenv('AWS_REGION', 'us-east-1')
+sns_client = boto3.client('sns', region_name=settings.AWS_REGION)
 
 # New SNS topic ARN for admin notifications
 SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:296779434624:ParkingAppLambdaAdminNotifications"

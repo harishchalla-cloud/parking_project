@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 class ParkingUtils:
     def __init__(self, media_bucket_name, static_bucket_name):
-        self.s3_client = boto3.client('s3')
-        self.sns_client = boto3.client('sns')
-        self.cloudwatch_logs = boto3.client('logs')
-        self.cloudwatch_metrics = boto3.client('cloudwatch')
+        self.s3_client = boto3.client('s3', region_name=settings.AWS_REGION)
+        self.sns_client = boto3.client('sns', region_name=settings.AWS_REGION)
+        self.cloudwatch_logs = boto3.client('logs', region_name=settings.AWS_REGION)
+        self.cloudwatch_metrics = boto3.client('cloudwatch', region_name=settings.AWS_REGION)
         self.media_bucket = media_bucket_name
         self.static_bucket = static_bucket_name
         self.topic_arn = config('SNS_TOPIC_ARN')
