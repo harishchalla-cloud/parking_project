@@ -27,30 +27,20 @@ class BookingForm(forms.Form):
     end_time = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}))
     vehicle_number = forms.CharField(max_length=20)
 
-    def clean_start_time(self):
-        start_time = self.cleaned_data['start_time']
-        if start_time < timezone.now():
-            raise forms.ValidationError("Start time must be in the future.")
-        return start_time
-
-    def clean_end_time(self):
-        end_time = self.cleaned_data['end_time']
-        return end_time
-
     def clean(self):
         cleaned_data = super().clean()
-        start_time = cleaned_data.get('start_time')
-        end_time = cleaned_data.get('end_time')
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
         if start_time and end_time:
-            duration = end_time - start_time
-            duration_hours = duration.total_seconds() / 3600  # Convert to hours including minutes as decimals
-            min_duration = 1  # Minimum 1 hour
-            max_duration = 12  # Maximum 12 hours
-
-            if duration.total_seconds() <= 0:
+            # Ensure timezone-aware
+            if not start_time.tzinfo:
+                start_time = timezone.make_aware(start_time)
+            if not end_time.tzinfo:
+                end_time = timezone.make_aware(end_time)
+            cleaned_data['start_time'] = start_time
+            cleaned_data['end_time'] = end_time
+            if end_time <= start_time:
                 raise forms.ValidationError("End time must be after start time.")
-            if duration_hours < min_duration:
-                raise forms.ValidationError(f"Booking duration must be at least {min_duration} hour.")
-            if duration_hours > max_duration:
-                raise forms.ValidationError(f"Booking duration cannot exceed {max_duration} hours.")
+            if start_time < timezone.now():
+                raise forms.ValidationError("Start time cannot be in the past.")
         return cleaned_data

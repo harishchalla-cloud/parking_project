@@ -14,11 +14,11 @@ import time
 import logging
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 
 logger = logging.getLogger('django')
 
 utils = ParkingUtils(settings.AWS_STORAGE_BUCKET_NAME, settings.AWS_STORAGE_BUCKET_NAME)
-
 
 def parking_list(request):
     start_time = time.time()
@@ -33,14 +33,22 @@ def parking_list(request):
     s3_start = time.time()
     s3_client = boto3.client('s3')
     spot_list = []
+    # Default time range for availability check (next hour)
+    now = timezone.now()
+    default_start = now + timedelta(hours=1)
+    default_end = default_start + timedelta(hours=1)
     for spot in spots:
+        # Get available spots count
+        available_spots_count = spot.available_spots(start_time=default_start, end_time=default_end).count()
         spot_dict = {
             'spot_id': str(spot.spot_id),
             'parking_name': spot.parking_name,
             'location': spot.location,
             'price': float(spot.price),
             'total_spots': spot.total_spots,
-            'image_url': None
+            'image_url': None,
+            'is_available': spot.is_available(start_time=default_start, end_time=default_end),
+            'available_spots_count': available_spots_count  # Add the count
         }
         if spot.image:
             try:
@@ -71,19 +79,29 @@ def book_spot(request, spot_id):
                 start_time = form.cleaned_data["start_time"]
                 end_time = form.cleaned_data["end_time"]
                 vehicle_number = form.cleaned_data["vehicle_number"]
-                if not utils.check_spot_availability(parking_spot, start_time, end_time):
+                utils.log_to_cloudwatch(f"Booking attempt: Spot ID {spot_id}, Start: {start_time}, End: {end_time}")
+                # Check availability
+                availability = utils.check_spot_availability(parking_spot, start_time, end_time)
+                utils.log_to_cloudwatch(f"Availability result: {availability}")
+                if not availability:
                     messages.error(request, f"No available spots at {parking_spot.parking_name}.")
                     utils.log_to_cloudwatch(f"Booking failed: No spots available at {parking_spot.parking_name}", level='WARNING')
                     utils.put_metric('BookingFailures', 1)
                     return redirect("parking:parking_list")
                 duration_hours = (end_time - start_time).total_seconds() / 3600
                 total_price = Decimal(parking_spot.price) * Decimal(duration_hours)
-                available_spot = parking_spot.available_spots().first()
+                # Get available spots
+                available_spots = parking_spot.available_spots(start_time=start_time, end_time=end_time)
+                utils.log_to_cloudwatch(f"Available spots count: {available_spots.count()}")
+                for spot in available_spots:
+                    utils.log_to_cloudwatch(f"Available spot: {spot.spot_number}")
+                available_spot = available_spots.first()
                 if not available_spot:
                     messages.error(request, "No available spot found.")
                     utils.log_to_cloudwatch("Booking failed: No available spot found", level='WARNING')
                     utils.put_metric('BookingFailures', 1)
                     return redirect("parking:parking_list")
+                utils.log_to_cloudwatch(f"Selected spot for booking: {available_spot.spot_number}")
                 booking_id = uuid.uuid4()
                 result = add_booking(
                     booking_id,
@@ -94,6 +112,7 @@ def book_spot(request, spot_id):
                     vehicle_number,
                     total_price
                 )
+                utils.log_to_cloudwatch(f"add_booking result: {result}")
                 if "message" in result and result["message"] == "Booking added successfully":
                     utils.notify_user(
                         request.user.email,
@@ -105,7 +124,7 @@ def book_spot(request, spot_id):
                     messages.success(request, "Booking confirmed!")
                     return redirect("parking:booking_confirmation", booking_id=booking_id)
                 messages.error(request, "Booking failed.")
-                utils.log_to_cloudwatch("Booking failed: Unknown error", level='ERROR')
+                utils.log_to_cloudwatch(f"Booking failed: {result.get('error', 'Unknown error')}", level='ERROR')
                 utils.put_metric('BookingFailures', 1)
         else:
             form = BookingForm(request.POST)
@@ -126,7 +145,6 @@ def book_spot(request, spot_id):
         form = BookingForm()
     return render(request, "parking/book_spot.html", {"form": form, "spot": parking_spot})
 
-
 @login_required
 def modify_booking(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
@@ -139,7 +157,7 @@ def modify_booking(request, booking_id):
             vehicle_number = form.cleaned_data["vehicle_number"]
             duration_hours = (end_time - start_time).total_seconds() / 3600
             total_price = Decimal(parking_spot.price) * Decimal(duration_hours)
-            if utils.check_spot_availability(parking_spot, start_time, end_time) or (start_time == booking.start_time and end_time == booking.end_time):
+            if parking_spot.is_available(start_time, end_time) or (start_time == booking.start_time and end_time == booking.end_time):
                 result = update_booking(booking_id, start_time, end_time, vehicle_number, total_price)
                 if "message" in result and result["message"] == "Booking updated successfully":
                     utils.notify_user(
@@ -172,7 +190,7 @@ def my_bookings(request):
 
 @login_required
 def booking_history(request):
-    bookings = Booking.objects.filter(user=request.user, end_time__lte=timezone.now())
+    bookings = Booking.objects.filter(user=request.user).order_by('-start_time')
     return render(request, "parking/booking_history.html", {"bookings": bookings})
 
 @login_required
@@ -195,7 +213,6 @@ def cancel_booking(request, booking_id):
         utils.put_metric('BookingFailures', 1)
     return render(request, "parking/confirm_cancel.html", {"booking": booking})
 
-
 def signup(request):
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
@@ -216,9 +233,3 @@ def signup(request):
 @login_required
 def profile(request):
     return render(request, "parking/profile.html", {"user": request.user})
-
-
-@login_required
-def booking_history(request):
-    bookings = Booking.objects.filter(user=request.user).order_by('-start_time')
-    return render(request, 'parking/booking_history.html', {'bookings': bookings})

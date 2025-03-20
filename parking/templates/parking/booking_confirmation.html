@@ -6,6 +6,7 @@
         <div class="confirmation-box">
             <p>Your booking details:</p>
             <ul>
+                <li><span>Reference ID:</span> {{ booking.booking_id }}</li>
                 <li><span>Spot:</span> {{ booking.spot.parking_spot.parking_name }}</li>
                 <li><span>Number:</span> {{ booking.spot.spot_number }}</li>
                 <li><span>Location:</span> {{ booking.spot.parking_spot.location }}</li>

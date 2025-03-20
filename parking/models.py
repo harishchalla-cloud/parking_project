@@ -37,20 +37,34 @@ class ParkingSpot(models.Model):
                     spot.delete()
                     logger.debug(f"Deleted excess {spot.spot_number} from {self.parking_name}")
 
-    def available_spots(self):
-        """Return spots that are not booked or whose bookings have ended."""
-        now = timezone.now()
-        available = self.spots.filter(
-            models.Q(booking__isnull=True) |
-            models.Q(booking__end_time__lt=now)
-        ).distinct()
-        logger.debug(f"{self.parking_name}: Available spots count={available.count()} at {now}")
+    def available_spots(self, start_time=None, end_time=None):
+        """Return spots that are not booked during the specified time range."""
+        if start_time is None or end_time is None:
+            now = timezone.now()
+            available = self.spots.filter(
+                models.Q(booking__isnull=True) |
+                models.Q(booking__end_time__lt=now)
+            ).distinct()
+            logger.debug(f"{self.parking_name}: Available spots count={available.count()} at {now}")
+            return available
+
+        # Find spots that are not booked during the given time range
+        booked_spots = Booking.objects.filter(
+            spot__parking_spot=self,
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).filter(
+            end_time__gt=timezone.now()  # Only active bookings
+        ).values_list('spot_id', flat=True)
+        logger.debug(f"Booked spots IDs: {list(booked_spots)}")
+        available = self.spots.exclude(id__in=booked_spots)
+        logger.debug(f"{self.parking_name}: Available spots count={available.count()} for {start_time} to {end_time}")
         return available
 
-    def is_available(self):
-        """Return True if any spots are available."""
-        result = self.available_spots().exists()
-        logger.debug(f"{self.parking_name}: Is available? {result}")
+    def is_available(self, start_time=None, end_time=None):
+        """Return True if any spots are available for the given time range."""
+        result = self.available_spots(start_time=start_time, end_time=end_time).exists()
+        logger.debug(f"{self.parking_name}: Is available? {result} for {start_time} to {end_time}")
         return result
 
 class Spot(models.Model):
@@ -64,15 +78,26 @@ class Spot(models.Model):
     def __str__(self):
         return f"{self.parking_spot.parking_name} - {self.spot_number}"
 
-    def is_booked(self):
-        """Check if the spot is currently booked."""
-        now = timezone.now()
+    def is_booked(self, start_time=None, end_time=None):
+        """Check if the spot is booked during the given time range."""
+        if start_time is None or end_time is None:
+            now = timezone.now()
+            booked = Booking.objects.filter(
+                spot=self,
+                start_time__lte=now,
+                end_time__gte=now
+            ).exists()
+            logger.debug(f"{self}: Is booked? {booked} at {now}")
+            return booked
+
         booked = Booking.objects.filter(
             spot=self,
-            start_time__lte=now,
-            end_time__gte=now
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).filter(
+            end_time__gt=timezone.now()
         ).exists()
-        logger.debug(f"{self}: Is booked? {booked} at {now}")
+        logger.debug(f"{self}: Is booked? {booked} for {start_time} to {end_time}")
         return booked
 
 class Booking(models.Model):

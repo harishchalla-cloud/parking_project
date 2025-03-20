@@ -2,11 +2,12 @@
 {% block title %}Modify Booking{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Modify Booking</h1>
+        <h1>Modify Booking for {{ booking.spot.parking_spot.parking_name }}</h1>
         <form method="post" class="modify-form">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Update Booking</button>
+            <a href="{% url 'parking:my_bookings' %}" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
     <style>
@@ -14,7 +15,7 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
+            background: #fff;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
@@ -22,25 +23,24 @@
             text-align: center;
             color: #3498db;
         }
-        .modify-form p {
-            margin: 1.5rem 0;
-        }
-        .modify-form input {
+        .modify-form p { margin: 1.5rem 0; }
+        .modify-form input, .modify-form select {
             width: 100%;
             padding: 0.8rem;
             border: none;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
+            background: #fff;
             box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        .btn-primary {
-            background: #3498db;
-            color: #fff;
-            width: 100%;
-            margin-top: 1rem;
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
         }
-        .btn-primary:hover {
-            background: #2980b9;
-        }
+        .btn-primary { background: #3498db; color: #fff; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-secondary { background: #bdc3c7; color: #2c3e50; }
+        .btn-secondary:hover { background: #95a5a6; }
     </style>
 {% endblock %}

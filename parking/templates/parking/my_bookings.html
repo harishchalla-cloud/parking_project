@@ -11,7 +11,10 @@
                         <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
                         <span>€{{ booking.total_price|floatformat:2 }}</span>
                     </div>
-                    <a href="{% url 'parking:cancel_booking' booking.booking_id %}" class="btn btn-danger">Cancel</a>
+                    <div class="booking-actions">
+                        <a href="{% url 'parking:modify_booking' booking.booking_id %}" class="btn btn-modify">Modify</a>
+                        <a href="{% url 'parking:cancel_booking' booking.booking_id %}" class="btn btn-danger">Cancel</a>
+                    </div>
                 </li>
             {% empty %}
                 <li class="no-bookings">No active bookings found.</li>
@@ -48,8 +51,18 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
         .booking-info { display: flex; flex-direction: column; gap: 0.5rem; }
-        .btn-danger { background: #e74c3c; color: #fff; padding: 0.6rem 1.5rem; }
+        .booking-actions { display: flex; gap: 1rem; }
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-danger { background: #e74c3c; color: #fff; }
         .btn-danger:hover { background: #c0392b; }
+        .btn-modify { background: #f1c40f; color: #2c3e50; }
+        .btn-modify:hover { background: #e67e22; }
         .no-bookings { text-align: center; padding: 2rem; color: #2c3e50; }
     </style>
 {% endblock %}

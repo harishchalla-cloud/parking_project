@@ -17,7 +17,7 @@
                     <div class="spot-details">
                         <p><strong>Location:</strong> {{ spot.location }}</p>
                         <p><strong>Price:</strong> €{{ spot.price|floatformat:2 }}/hour</p>
-                        <p><strong>Available:</strong> {{ spot.available_spots.count }}</p>
+                        <p><strong>Available:</strong> {{ spot.available_spots_count }}</p>
                     </div>
                     {% if spot.is_available %}
                         <a href="{% url 'parking:book_spot' spot.spot_id %}" class="btn btn-primary">Book Now</a>
