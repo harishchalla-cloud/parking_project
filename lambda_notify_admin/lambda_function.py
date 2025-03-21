@@ -2,6 +2,8 @@ import json
 import boto3
 import logging
 import os
+from django.conf import settings
+
 
 # Set up logging
 logger = logging.getLogger()

@@ -94,6 +94,10 @@
             {% endfor %}
         {% endif %}
         {% block content %}{% endblock %}
+
+        {% if user.is_staff %}
+            <li><a href="{% url 'parking:daily_bookings' %}">Daily Bookings</a></li>
+        {% endif %}
     </main>
 </body>
 </html>

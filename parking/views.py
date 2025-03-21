@@ -14,7 +14,9 @@ import time
 import logging
 from django.conf import settings
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime
+from datetime import datetime, time as dttime, timedelta
+from django.contrib.admin.views.decorators import staff_member_required
 
 logger = logging.getLogger('django')
 
@@ -233,3 +235,18 @@ def signup(request):
 @login_required
 def profile(request):
     return render(request, "parking/profile.html", {"user": request.user})
+
+
+
+@staff_member_required
+def daily_bookings(request):
+    today = timezone.now().date()
+    start_of_day = timezone.make_aware(datetime.combine(today, time.min))
+    end_of_day = timezone.make_aware(datetime.combine(today, time.max))
+    bookings = Booking.objects.filter(start_time__range=(start_of_day, end_of_day))
+    total_bookings = bookings.count()
+    return render(request, "parking/daily_bookings.html", {
+        "bookings": bookings,
+        "total_bookings": total_bookings,
+        "date": today
+    })

@@ -20,7 +20,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 IS_LOCAL = 'runserver' in sys.argv
 logger = logging.getLogger(__name__)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='3.224.197.135,127.0.0.1,localhost,44.214.76.222,parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com']
 logger.info(f"DEBUG={DEBUG}, IS_LOCAL={IS_LOCAL}, ALLOWED_HOSTS={ALLOWED_HOSTS}")
 
 INSTALLED_APPS = [
@@ -83,7 +83,8 @@ DATABASES = {
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=os.getenv('AWS_ACCESS_KEY_ID'))
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=os.getenv('AWS_SECRET_ACCESS_KEY'))
 AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-
+AWS_REGION = 'us-east-1'
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 # AWS S3 - Media Files
 AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-s3'
 AWS_S3_REGION_NAME = 'us-east-1'
@@ -104,6 +105,7 @@ STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # SNS Configuration
 SNS_TOPIC_ARN = config('SNS_TOPIC_ARN')
+SNS_TOPIC_ARN='arn:aws:sns:us-east-1:296779434624:ParkingNotifications'
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -124,7 +126,9 @@ LOGOUT_REDIRECT_URL = 'parking:parking_list'
 LOGIN_REDIRECT_URL = '/parking/'
 LOGIN_URL = '/accounts/login/'
 
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=not IS_LOCAL, cast=bool)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
 
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True

@@ -13,4 +13,5 @@ urlpatterns = [
     path('cancel/<uuid:booking_id>/', views.cancel_booking, name='cancel_booking'),
     path('profile/', views.profile, name='profile'),
     path('signup/', views.signup, name='signup'),
+    path('admin/daily_bookings/', views.daily_bookings, name='daily_bookings'),
 ]

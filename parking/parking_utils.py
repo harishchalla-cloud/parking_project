@@ -6,16 +6,17 @@ import logging
 from django.utils import timezone
 from .models import Booking
 from lambda_notify_admin.lambda_function import lambda_handler
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 class ParkingUtils:
     def __init__(self, media_bucket_name, static_bucket_name):
-        region = os.getenv('AWS_REGION', getattr(settings, 'AWS_REGION', 'us-east-1'))
-        self.s3_client = boto3.client('s3', region_name=region)
-        self.sns_client = boto3.client('sns', region_name=region)
-        self.cloudwatch_logs = boto3.client('logs', region_name=region)
-        self.cloudwatch_metrics = boto3.client('cloudwatch', region_name=region)
+        self.region = os.getenv('AWS_REGION', 'us-east-1')
+        self.s3_client = boto3.client('s3', region_name=self.region)
+        self.sns_client = boto3.client('sns', region_name=self.region)
+        self.cloudwatch_logs = boto3.client('logs', region_name=self.region)
+        self.cloudwatch_metrics = boto3.client('cloudwatch', region_name=self.region)
         self.media_bucket = media_bucket_name
         self.static_bucket = static_bucket_name
         self.topic_arn = config('SNS_TOPIC_ARN')
