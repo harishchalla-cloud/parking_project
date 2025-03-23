@@ -24,7 +24,9 @@ jobs:
 
       - name: Generate deployment package
         run: |
-          zip -r deploy.zip . -x "*.git*" "*.github*" "venv/*"
+          ls -la  # Debug: List files to verify structure
+          zip -r deploy.zip . -x "*.git*" "*.github*" "venv/*" ".env"
+          ls -la deploy.zip  # Debug: Verify zip file
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
