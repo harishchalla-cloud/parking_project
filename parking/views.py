@@ -116,6 +116,16 @@ def book_spot(request, spot_id):
                 )
                 utils.log_to_cloudwatch(f"add_booking result: {result}")
                 if "message" in result and result["message"] == "Booking added successfully":
+                    # Before sending notification, ensure user is subscribed and has confirmed
+                    subscription_arn = utils.subscribe_user(request.user.email)
+                    if subscription_arn == 'PendingConfirmation':
+                        # If still pending confirmation, log and skip the notification
+                        utils.log_to_cloudwatch(f"Notification to {request.user.email} pending confirmation", level='WARNING')
+                        logger.info(f"User {request.user.email} has not confirmed their subscription yet.")
+                        messages.info(request, "Please confirm your email subscription to receive the booking confirmation.")
+                        return redirect("parking:booking_confirmation", booking_id=booking_id)
+
+                    # If already confirmed, proceed with notification
                     utils.notify_user(
                         request.user.email,
                         "Booking Confirmed",
@@ -146,6 +156,8 @@ def book_spot(request, spot_id):
     else:
         form = BookingForm()
     return render(request, "parking/book_spot.html", {"form": form, "spot": parking_spot})
+
+
 
 @login_required
 def modify_booking(request, booking_id):
@@ -220,12 +232,25 @@ def signup(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            utils.notify_user(
+            email_message = (
+                f"Dear {user.username},\n\n"
+                f"Welcome to the Parking App!\n\n"
+                f"Account Details:\n"
+                f"Username: {user.username}\n"
+                f"Email: {user.email}\n"
+                f"Account Created On: {timezone.now()}\n\n"
+                f"You can now log in and start booking parking spots. Enjoy our service!"
+            )
+            notification_status = utils.notify_user(
                 user.email,
                 "Welcome to Parking App",
-                f"Welcome, {user.username}! Your account is created.\nLogin to book parking spots."
+                email_message
             )
             login(request, user)
+            if notification_status == "pending_confirmation":
+                messages.info(request, "Please check your email and confirm your SNS subscription to receive notifications.")
+            elif notification_status == "error":
+                messages.warning(request, "Account created, but failed to send welcome email. Please check your email settings.")
             messages.success(request, "Account created! Please check your email.")
             return redirect("parking:parking_list")
     else:
@@ -236,13 +261,11 @@ def signup(request):
 def profile(request):
     return render(request, "parking/profile.html", {"user": request.user})
 
-
-
 @staff_member_required
 def daily_bookings(request):
     today = timezone.now().date()
-    start_of_day = timezone.make_aware(datetime.combine(today, time.min))
-    end_of_day = timezone.make_aware(datetime.combine(today, time.max))
+    start_of_day = timezone.make_aware(datetime.combine(today, dttime.min))
+    end_of_day = timezone.make_aware(datetime.combine(today, dttime.max))
     bookings = Booking.objects.filter(start_time__range=(start_of_day, end_of_day))
     total_bookings = bookings.count()
     return render(request, "parking/daily_bookings.html", {

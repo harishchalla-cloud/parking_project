@@ -4,9 +4,8 @@ import os
 from decouple import config
 import logging
 from django.utils import timezone
-from .models import Booking
-from lambda_notify_admin.lambda_function import lambda_handler
 from django.conf import settings
+from .models import Booking
 
 logger = logging.getLogger(__name__)
 
@@ -48,38 +47,22 @@ class ParkingUtils:
             raise
 
     def check_spot_availability(self, parking_spot, start_time, end_time):
-        self.log_to_cloudwatch(
-            f"Checking availability for {parking_spot.parking_name}, Start: {start_time}, End: {end_time}")
-        self.log_to_cloudwatch(f"Timezone of start_time: {start_time.tzinfo}, end_time: {end_time.tzinfo}")
-
-        # Chain filters to avoid repeated keyword arguments
+        """Check if any spot is available for the given time range."""
         overlapping = Booking.objects.filter(
             spot__parking_spot=parking_spot,
             start_time__lt=end_time,
             end_time__gt=start_time
-        ).filter(
-            end_time__gt=timezone.now()  # Only active bookings
-        )
-        overlapping_count = overlapping.count()
-        self.log_to_cloudwatch(f"Overlapping bookings: {overlapping_count}")
-        for booking in overlapping:
-            self.log_to_cloudwatch(
-                f"Overlapping booking: {booking.booking_id}, Start: {booking.start_time}, End: {booking.end_time}")
-
-        # Ensure total_spots is not zero
-        if parking_spot.total_spots <= 0:
-            self.log_to_cloudwatch(f"Error: Total spots for {parking_spot.parking_name} is {parking_spot.total_spots}", level='ERROR')
-            return False
-
-        available = overlapping_count < parking_spot.total_spots
-        self.log_to_cloudwatch(
-            f"Availability check for {parking_spot.parking_name}: {available}, Overlapping: {overlapping_count}, Total Spots: {parking_spot.total_spots}")
+        ).count()
+        available = overlapping < parking_spot.total_spots
+        logger.debug(f"Availability check for {parking_spot.parking_name}: {available}, Overlapping: {overlapping}")
         return available
 
     def subscribe_user(self, email):
+        """Subscribe an email to the SNS topic with a filter policy if not already subscribed."""
         try:
             subscriptions = self.sns_client.list_subscriptions_by_topic(TopicArn=self.topic_arn)
             subscribed_emails = [sub['Endpoint'] for sub in subscriptions['Subscriptions'] if sub['Protocol'] == 'email']
+
             if email not in subscribed_emails:
                 response = self.sns_client.subscribe(
                     TopicArn=self.topic_arn,
@@ -87,51 +70,72 @@ class ParkingUtils:
                     Endpoint=email
                 )
                 subscription_arn = response['SubscriptionArn']
-                self.log_to_cloudwatch(f"Subscription request sent to {email}: {subscription_arn}")
+                logger.debug(f"Subscription request sent to {email}: {subscription_arn}")
                 logger.info(f"User {email} must confirm SNS subscription to receive notifications.")
                 return subscription_arn
             else:
                 for sub in subscriptions['Subscriptions']:
                     if sub['Endpoint'] == email and sub['SubscriptionArn'] != 'PendingConfirmation':
+                        # Ensure filter policy is applied
                         self.set_subscription_filter(sub['SubscriptionArn'], email)
                         return sub['SubscriptionArn']
             return None
         except Exception as e:
-            self.log_to_cloudwatch(f"Error subscribing {email}: {str(e)}", level='ERROR')
+            logger.error(f"Error subscribing {email}: {str(e)}")
             raise
 
     def set_subscription_filter(self, subscription_arn, email):
+        """Set a filter policy on the subscription to match the email."""
         try:
             self.sns_client.set_subscription_attributes(
                 SubscriptionArn=subscription_arn,
                 AttributeName='FilterPolicy',
                 AttributeValue=f'{{"email": ["{email}"]}}'
             )
-            self.log_to_cloudwatch(f"Filter policy set for {email} on {subscription_arn}")
+            logger.debug(f"Filter policy set for {email} on {subscription_arn}")
         except Exception as e:
-            self.log_to_cloudwatch(f"Error setting filter policy for {email}: {str(e)}", level='ERROR')
+            logger.error(f"Error setting filter policy for {email}: {str(e)}")
             raise
 
     def notify_user(self, email, subject, message):
+        """Send SNS notification to the specified email only."""
         logger.info(f"Attempting to notify {email} with subject: {subject}")
         try:
+            # Ensure the user is subscribed with a filter
             subscription_arn = self.subscribe_user(email)
+
+            # If subscription is pending, log a warning and return status
             if subscription_arn == 'PendingConfirmation':
-                self.log_to_cloudwatch(f"Notification to {email} pending confirmation", level='WARNING')
-            elif subscription_arn:
-                self.set_subscription_filter(subscription_arn, email)
+                logger.warning(f"Notification to {email} may not be sent: subscription pending confirmation.")
+                self.log_to_cloudwatch(f"Notification to {email} skipped: subscription pending confirmation.", level='WARNING')
+                return "pending_confirmation"
+            elif not subscription_arn:
+                logger.warning(f"No confirmed subscription found for {email}.")
+                self.log_to_cloudwatch(f"No confirmed subscription found for {email}.", level='WARNING')
+                return "no_subscription"
+
+            # If subscription is confirmed, set the filter policy
+            self.set_subscription_filter(subscription_arn, email)
+
+            # Publish the message
             response = self.sns_client.publish(
                 TopicArn=self.topic_arn,
                 Message=message,
                 Subject=subject,
                 MessageAttributes={
-                    'email': {'DataType': 'String', 'StringValue': email}
+                    'email': {
+                        'DataType': 'String',
+                        'StringValue': email
+                    }
                 }
             )
+            logger.debug(f"SNS notification sent to {email}: {response['MessageId']} with subject: {subject}")
             self.log_to_cloudwatch(f"SNS notification sent to {email}: {response['MessageId']} with subject: {subject}")
+            return "success"
         except Exception as e:
+            logger.error(f"Failed to send SNS notification to {email}: {str(e)}")
             self.log_to_cloudwatch(f"Failed to send SNS notification to {email}: {str(e)}", level='ERROR')
-            raise
+            return "error"
 
     def log_to_cloudwatch(self, message, level='INFO'):
         try:
@@ -150,32 +154,6 @@ class ParkingUtils:
             response = self.cloudwatch_logs.put_log_events(**log_event)
             self.sequence_token = response['nextSequenceToken']
             logger.debug(f"Logged to CloudWatch: {message}")
-
-            # Simulate CloudWatch Logs trigger to Lambda
-            if level in ['ERROR', 'WARNING']:
-                logger.info(f"Detected {level} log, invoking Lambda handler for message: {message}")
-                # Construct a simulated CloudWatch Logs event
-                simulated_event = {
-                    'awslogs': {
-                        'data': {
-                            'logGroup': self.log_group_name,
-                            'logStream': self.log_stream_name,
-                            'logEvents': [
-                                {
-                                    'timestamp': int(timezone.now().timestamp() * 1000),
-                                    'message': f"{level}: {message}"
-                                }
-                            ]
-                        }
-                    }
-                }
-                # Call the Lambda handler locally
-                try:
-                    lambda_response = lambda_handler(simulated_event, context=None)
-                    logger.info(f"Lambda handler response: {lambda_response}")
-                except Exception as e:
-                    logger.error(f"Error invoking Lambda handler: {str(e)}")
-
         except Exception as e:
             logger.error(f"Failed to log to CloudWatch: {str(e)}")
 
@@ -183,13 +161,11 @@ class ParkingUtils:
         try:
             self.cloudwatch_metrics.put_metric_data(
                 Namespace='ParkingAppMetrics',
-                MetricData=[
-                    {
-                        'MetricName': metric_name,
-                        'Value': value,
-                        'Unit': unit
-                    }
-                ]
+                MetricData=[{
+                    'MetricName': metric_name,
+                    'Value': value,
+                    'Unit': unit
+                }]
             )
             logger.debug(f"Sent metric {metric_name}: {value} to CloudWatch")
         except Exception as e:

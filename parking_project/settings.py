@@ -5,11 +5,13 @@ Django settings for parking_project project.
 import os
 import sys
 import logging
+from pathlib import Path
 from decouple import config
 import boto3
 import pymysql
+
+# Install pymysql as MySQLdb for Django
 pymysql.install_as_MySQLdb()
-from pathlib import Path
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +22,14 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 IS_LOCAL = 'runserver' in sys.argv
 logger = logging.getLogger(__name__)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com']
+# Update ALLOWED_HOSTS for the new Elastic Beanstalk environment
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'Parking-app-env.eba-6gs3pgjb.us-east-1.elasticbeanstalk.com',  # Update to your new EB environment URL
+    '.elasticbeanstalk.com',
+]
+
 logger.info(f"DEBUG={DEBUG}, IS_LOCAL={IS_LOCAL}, ALLOWED_HOSTS={ALLOWED_HOSTS}")
 
 INSTALLED_APPS = [
@@ -30,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'storages',
+    'storages',  # For S3 storage
     'parking.apps.ParkingConfig',
 ]
 
@@ -64,14 +73,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'parking_project.wsgi.application'
 
+# Database settings (RDS)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='x23417498_db'),
-        'USER': config('DB_USER', default='admin'),
-        'PASSWORD': config('DB_PASSWORD', default='zxcvbnm1234567'),
-        'HOST': config('DB_HOST', default='parkingdb-instance.cb3ysdqsmzfo.us-east-1.rds.amazonaws.com'),
-        'PORT': config('DB_PORT', default='3306'),
+        'NAME': 'x23417498_db',
+        'USER': 'admin',
+        'PASSWORD': 'zxcvbnm1234567',
+        'HOST': 'parkingdb-instance.cqxsqm684dqh.us-east-1.rds.amazonaws.com',
+        'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
             'sql_mode': 'STRICT_TRANS_TABLES',
@@ -79,34 +89,32 @@ DATABASES = {
     }
 }
 
-# AWS Credentials
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default=os.getenv('AWS_ACCESS_KEY_ID'))
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default=os.getenv('AWS_SECRET_ACCESS_KEY'))
-AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+# AWS settings
 AWS_REGION = 'us-east-1'
-AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-# AWS S3 - Media Files
-AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-s3'
+# Remove explicit AWS credentials since boto3 will use the default profile
+# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not needed here
+
+# S3 settings for media and static files
+AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-bucket'  # Updated to match the bucket you created
 AWS_S3_REGION_NAME = 'us-east-1'
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com'
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'  # Updated to standard S3 domain format
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'private'
-AWS_S3_VERIFY = False
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 AWS_QUERYSTRING_AUTH = False
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-# AWS S3 - Static Files (Using same bucket)
-AWS_STATIC_BUCKET_NAME = 'x23417498-parking-s3'
+# Static files (using the same bucket)
+AWS_STATIC_BUCKET_NAME = 'x23417498-parking-bucket'  # Updated to match the bucket you created
 STATIC_URL = f'https://{AWS_STATIC_BUCKET_NAME}.s3.amazonaws.com/static/'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# Removed STATICFILES_DIRS and STATIC_ROOT
 
-# SNS Configuration
-SNS_TOPIC_ARN = config('SNS_TOPIC_ARN')
-SNS_TOPIC_ARN='arn:aws:sns:us-east-1:296779434624:ParkingNotifications'
+# SNS configuration
+SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:337825745507:ParkingNotifications'  # Updated to the new topic ARN
 
+# CloudWatch logging (already configured in ParkingUtils.log_to_cloudwatch)
+# Log group: ParkingLogs, Log stream: ApplicationStream (matches your script)
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -126,9 +134,9 @@ LOGOUT_REDIRECT_URL = 'parking:parking_list'
 LOGIN_REDIRECT_URL = '/parking/'
 LOGIN_URL = '/accounts/login/'
 
+# Security settings for production
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=not IS_LOCAL, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
-
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

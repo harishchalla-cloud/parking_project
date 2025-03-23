@@ -78,26 +78,15 @@ class Spot(models.Model):
     def __str__(self):
         return f"{self.parking_spot.parking_name} - {self.spot_number}"
 
-    def is_booked(self, start_time=None, end_time=None):
-        """Check if the spot is booked during the given time range."""
-        if start_time is None or end_time is None:
-            now = timezone.now()
-            booked = Booking.objects.filter(
-                spot=self,
-                start_time__lte=now,
-                end_time__gte=now
-            ).exists()
-            logger.debug(f"{self}: Is booked? {booked} at {now}")
-            return booked
-
+    def is_booked(self):
+        """Check if the spot is currently booked."""
+        now = timezone.now()
         booked = Booking.objects.filter(
             spot=self,
-            start_time__lt=end_time,
-            end_time__gt=start_time
-        ).filter(
-            end_time__gt=timezone.now()
+            start_time__lte=now,
+            end_time__gte=now
         ).exists()
-        logger.debug(f"{self}: Is booked? {booked} for {start_time} to {end_time}")
+        logger.debug(f"{self}: Is booked? {booked} at {now}")
         return booked
 
 class Booking(models.Model):

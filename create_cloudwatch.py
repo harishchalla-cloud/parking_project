@@ -1,22 +1,11 @@
 import boto3
 from botocore.exceptions import ClientError
-from decouple import config
 
-# AWS credentials from .env
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-AWS_SESSION_TOKEN = config('AWS_SESSION_TOKEN', default='')
-AWS_REGION = config('AWS_REGION', default='us-east-1')
+# Define AWS region
+AWS_REGION = 'us-east-1'
 
-# Initialize CloudWatch Logs client
-logs_client = boto3.client(
-    'logs',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    aws_session_token=AWS_SESSION_TOKEN
-)
-
+# Initialize CloudWatch Logs client using the default profile
+logs_client = boto3.client('logs', region_name=AWS_REGION)
 
 def create_log_group(log_group_name):
     """Create a CloudWatch log group."""
@@ -30,7 +19,6 @@ def create_log_group(log_group_name):
         else:
             print(f"Error creating log group: {e}")
         return None
-
 
 def create_log_stream(log_group_name, log_stream_name):
     """Create a log stream within the log group."""
@@ -48,7 +36,6 @@ def create_log_stream(log_group_name, log_stream_name):
             print(f"Error creating log stream: {e}")
         return None
 
-
 def main():
     log_group_name = 'ParkingLogs'
     log_stream_name = 'ApplicationStream'
@@ -57,7 +44,6 @@ def main():
     create_log_group(log_group_name)
     create_log_stream(log_group_name, log_stream_name)
     print(f"CloudWatch setup complete: {log_group_name}/{log_stream_name}")
-
 
 if __name__ == "__main__":
     main()

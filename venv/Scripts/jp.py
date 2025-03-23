@@ -1,4 +1,4 @@
-#!C:\Users\chall\Downloads\parking_project\venv\Scripts\python.exe
+#!D:\parking_project\venv\Scripts\python.exe
 
 import sys
 import json

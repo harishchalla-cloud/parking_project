@@ -1,21 +1,10 @@
 import boto3
 from botocore.exceptions import ClientError
-from decouple import config
 
-# Define AWS credentials and region from .env
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-AWS_SESSION_TOKEN = config('AWS_SESSION_TOKEN', default='')  # Optional if using permanent creds
-AWS_REGION = config('AWS_REGION', default='us-east-1')
+AWS_REGION = 'us-east-1'
 
-# Initialize SNS client
-sns_client = boto3.client(
-    'sns',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    aws_session_token=AWS_SESSION_TOKEN
-)
+# Initialize SNS client using the default profile
+sns_client = boto3.client('sns', region_name=AWS_REGION)
 
 def create_sns_topic(topic_name):
     """Create an SNS topic and return its ARN."""

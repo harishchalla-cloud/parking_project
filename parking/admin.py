@@ -19,7 +19,7 @@ class ParkingSpotAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         logger.debug(f"Starting save_model for {obj}")
-        utils = ParkingUtils('x23417498-parking-s3', 'x23417498-parking-static')
+        utils = ParkingUtils('x23417498-parking-bucket', 'x23417498-parking-bucket')
         try:
             if 'image' in request.FILES:
                 image_file = request.FILES['image']
