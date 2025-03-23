@@ -35,38 +35,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
 
-      - name: Create Elastic Beanstalk application
-        run: |
-          aws elasticbeanstalk create-application \
-            --application-name parking-app \
-            --description "Parking App on Elastic Beanstalk" \
-            --region us-east-1 || echo "Application already exists"
-
-      - name: Create Elastic Beanstalk environment
-        run: |
-          aws elasticbeanstalk create-environment \
-            --application-name parking-app \
-            --environment-name Parking-app-env-new \
-            --solution-stack-name "64bit Amazon Linux 2023 v4.0.6 running Python 3.9" \
-            --option-settings \
-              Namespace=aws:autoscaling:launchconfiguration,OptionName=InstanceType,Value=t3.micro \
-              Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=HealthCheckPath,Value=/parking/ \
-              Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=MatcherHTTPCode,Value=200 \
-              Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Port,Value=8000 \
-              Namespace=aws:elasticbeanstalk:environment:process:default,OptionName=Protocol,Value=HTTP \
-            --region us-east-1 || echo "Environment already exists or creation in progress"
-
-      - name: Wait for environment to be ready
-        run: |
-          aws elasticbeanstalk wait environment-exists \
-            --application-name parking-app \
-            --environment-name Parking-app-env-new \
-            --region us-east-1
-          aws elasticbeanstalk wait environment-updated \
-            --application-name parking-app \
-            --environment-name Parking-app-env-new \
-            --region us-east-1
-
       - name: Set environment variables
         run: |
           aws elasticbeanstalk update-environment \

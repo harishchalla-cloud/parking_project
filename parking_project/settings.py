@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'Parking-app-env.eba-6gs3pgjb.us-east-1.elasticbeanstalk.com',  # Update to your new EB environment URL
+    'Parking-app-env-new.eba-6gs3pgjb.us-east-1.elasticbeanstalk.com',  # Update to your new EB environment URL
     '.elasticbeanstalk.com',
 ]
 
