@@ -3450,3 +3450,15 @@
 2025-03-29 13:45:56,249 - INFO - Starting SQS worker...
 2025-03-29 15:25:55,556 - INFO - Found credentials in shared credentials file: ~/.aws/credentials
 2025-03-29 15:25:56,750 - INFO - Starting SQS worker...
+2025-03-29 15:51:47,953 - WARNING - Unknown task type: None
+2025-03-29 15:51:48,092 - INFO - Processed and deleted SQS message for booking None
+2025-03-29 15:52:38,171 - WARNING - Unknown task type: None
+2025-03-29 15:52:38,298 - INFO - Processed and deleted SQS message for booking None
+2025-03-29 15:52:39,040 - INFO - Processing QR code generation for booking 9debe032-c94f-46cc-9116-c8e796eb13b3
+2025-03-29 15:52:41,382 - INFO - Attempting to notify challaharish1507@gmail.com with subject: Your QR Code for Parking Booking
+2025-03-29 15:52:42,302 - INFO - Notified user challaharish1507@gmail.com for booking 9debe032-c94f-46cc-9116-c8e796eb13b3 with status: success
+2025-03-29 15:52:42,560 - INFO - Processed and deleted SQS message for booking 9debe032-c94f-46cc-9116-c8e796eb13b3
+2025-03-29 15:52:43,008 - WARNING - Unknown task type: None
+2025-03-29 15:52:43,117 - INFO - Processed and deleted SQS message for booking None
+2025-03-29 16:19:27,688 - WARNING - Unknown task type: None
+2025-03-29 16:19:27,826 - INFO - Processed and deleted SQS message for booking None

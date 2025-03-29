@@ -1762,3 +1762,4 @@ Traceback (most recent call last):
   File "D:\parking_project\parking\worker.py", line 3, in <module>
     import qrcode
 ModuleNotFoundError: No module named 'qrcode'
+2025-03-29 15:52:41,382 - parking_utils_pkg.parking_utils - INFO - Attempting to notify challaharish1507@gmail.com with subject: Your QR Code for Parking Booking
