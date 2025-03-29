@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        <h2>Verify Booking</h2>
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-primary">Booking Details</h3>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Booking ID:</span> {{ booking.booking_id }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>User Email:</span> {{ booking.user.email }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Parking Name:</span> {{ booking.spot.parking_spot.parking_name }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Spot Number:</span> {{ booking.spot.spot_number }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Start Time:</span> {{ booking.start_time }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>End Time:</span> {{ booking.end_time }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Total Price:</span> €{{ booking.total_price }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Vehicle Number:</span> {{ booking.vehicle_number }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Status:</span> {{ booking.status }}
+                    </li>
+                </ul>
+                {% if booking.status == 'pending' %}
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Verify Booking</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted text-center">This booking has already been {{ booking.status }}.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -2,67 +2,48 @@
 {% block title %}My Bookings{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>My Active Bookings</h1>
-        <ul class="booking-list">
-            {% for booking in bookings %}
-                <li class="booking-item">
-                    <div class="booking-info">
-                        <span>{{ booking.spot.parking_spot.parking_name }}</span>
-                        <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
-                        <span>€{{ booking.total_price|floatformat:2 }}</span>
-                    </div>
-                    <div class="booking-actions">
-                        <a href="{% url 'parking:modify_booking' booking.booking_id %}" class="btn btn-modify">Modify</a>
-                        <a href="{% url 'parking:cancel_booking' booking.booking_id %}" class="btn btn-danger">Cancel</a>
-                    </div>
-                </li>
-            {% empty %}
-                <li class="no-bookings">No active bookings found.</li>
-            {% endfor %}
-        </ul>
+        <h2>My Bookings</h2>
+        {% if bookings %}
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Parking Name</th>
+                                <th>Spot Number</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.booking_id }}</td>
+                                    <td>{{ booking.spot.parking_spot.parking_name }}</td>
+                                    <td>{{ booking.spot.spot_number }}</td>
+                                    <td>{{ booking.start_time }}</td>
+                                    <td>{{ booking.end_time }}</td>
+                                    <td>€{{ booking.total_price }}</td>
+                                    <td>{{ booking.status }}</td>
+                                    <td>
+                                        <a href="{% url 'parking:modify_booking' booking_id=booking.booking_id %}" class="btn btn-warning btn-sm me-1">Modify</a>
+                                        <a href="{% url 'parking:cancel_booking' booking_id=booking.booking_id %}" class="btn btn-danger btn-sm">Cancel</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted text-center">You have no upcoming bookings.</p>
+        {% endif %}
+        <div class="text-center mt-4">
+            <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">Book a Spot</a>
+        </div>
     </div>
-    <style>
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #00ddeb;
-            text-shadow: 0 2px 5px rgba(0, 221, 235, 0.3);
-        }
-        .booking-list { list-style: none; padding: 0; }
-        .booking-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            background: #ecf0f1;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-        .booking-item:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-        .booking-info { display: flex; flex-direction: column; gap: 0.5rem; }
-        .booking-actions { display: flex; gap: 1rem; }
-        .btn {
-            padding: 0.6rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .btn-danger { background: #e74c3c; color: #fff; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-modify { background: #f1c40f; color: #2c3e50; }
-        .btn-modify:hover { background: #e67e22; }
-        .no-bookings { text-align: center; padding: 2rem; color: #2c3e50; }
-    </style>
 {% endblock %}

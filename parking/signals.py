@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from .models import ParkingSpot, Booking
 import boto3
 from botocore.config import Config
-from .parking_utils import ParkingUtils
+from parking_utils_pkg import ParkingUtils
 import logging
 
 logger = logging.getLogger('django')

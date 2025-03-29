@@ -2,48 +2,43 @@
 {% block title %}Booking History{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Booking History</h1>
-        <ul class="booking-list">
-            {% for booking in bookings %}
-                <li class="booking-item">
-                    <div class="booking-info">
-                        <span>{{ booking.spot.parking_spot.parking_name }}</span>
-                        <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
-                        <span>€{{ booking.total_price|floatformat:2 }}</span>
-                    </div>
-                </li>
-            {% empty %}
-                <li class="no-bookings">No past bookings found.</li>
-            {% endfor %}
-        </ul>
+        <h2>Booking History</h2>
+        {% if bookings %}
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Parking Name</th>
+                                <th>Spot Number</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.booking_id }}</td>
+                                    <td>{{ booking.spot.parking_spot.parking_name }}</td>
+                                    <td>{{ booking.spot.spot_number }}</td>
+                                    <td>{{ booking.start_time }}</td>
+                                    <td>{{ booking.end_time }}</td>
+                                    <td>€{{ booking.total_price }}</td>
+                                    <td>{{ booking.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted text-center">You have no booking history.</p>
+        {% endif %}
+        <div class="text-center mt-4">
+            <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">Book a Spot</a>
+        </div>
     </div>
-    <style>
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #e67e22;
-        }
-        .booking-list {
-            list-style: none;
-            padding: 0;
-        }
-        .booking-item {
-            padding: 1.5rem;
-            background: linear-gradient(45deg, #e67e22, #d35400);
-            border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        .booking-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-    </style>
 {% endblock %}

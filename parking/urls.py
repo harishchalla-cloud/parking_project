@@ -1,3 +1,4 @@
+# parking/urls.py
 from django.urls import path
 from . import views
 
@@ -14,4 +15,6 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('signup/', views.signup, name='signup'),
     path('admin/daily_bookings/', views.daily_bookings, name='daily_bookings'),
+    path('verify/<uuid:booking_id>/', views.verify_booking, name='verify_booking'),
+    path('verify/', views.verify_booking_scan, name='verify_booking_scan'),  # New route for scanning
 ]

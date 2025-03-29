@@ -2,7 +2,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 AWS_REGION = 'us-east-1'
-BUCKET_NAME = 'x23417498-parking-bucket'
+BUCKET_NAME = 'x23417498-parking-s3'
 
 # Initialize S3 client using the default profile
 s3_client = boto3.client('s3', region_name=AWS_REGION)

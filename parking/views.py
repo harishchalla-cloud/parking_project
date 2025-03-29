@@ -6,21 +6,26 @@ from django.db.models import Q
 from .models import ParkingSpot, Booking, Spot
 from .forms import BookingForm, CustomUserCreationForm
 from .crud_operations import add_booking, update_booking, delete_booking
-from .parking_utils import ParkingUtils
+from parking_utils_pkg import ParkingUtils
 from decimal import Decimal
 import uuid
 import boto3
 import time
 import logging
-from django.conf import settings
+import os
 from django.utils import timezone
-from datetime import datetime
 from datetime import datetime, time as dttime, timedelta
 from django.contrib.admin.views.decorators import staff_member_required
+from django.urls import reverse
 
 logger = logging.getLogger('django')
 
-utils = ParkingUtils(settings.AWS_STORAGE_BUCKET_NAME, settings.AWS_STORAGE_BUCKET_NAME)
+# Initialize ParkingUtils with SNS topic ARN from environment
+utils = ParkingUtils(
+    media_bucket_name='x23417498-parking-s3',
+    static_bucket_name='x23417498-parking-s3',
+    sns_topic_arn='arn:aws:sns:us-east-1:296779434624:ParkingNotifications'
+)
 
 def parking_list(request):
     start_time = time.time()
@@ -50,14 +55,14 @@ def parking_list(request):
             'total_spots': spot.total_spots,
             'image_url': None,
             'is_available': spot.is_available(start_time=default_start, end_time=default_end),
-            'available_spots_count': available_spots_count  # Add the count
+            'available_spots_count': available_spots_count
         }
         if spot.image:
             try:
                 s3_key = str(spot.image)
                 spot_dict['image_url'] = s3_client.generate_presigned_url(
                     'get_object',
-                    Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': s3_key},
+                    Params={'Bucket': 'x23417498-parking-s3', 'Key': s3_key},
                     ExpiresIn=3600
                 )
                 utils.log_to_cloudwatch(f"Generated presigned URL for {spot.parking_name}")
@@ -82,8 +87,18 @@ def book_spot(request, spot_id):
                 end_time = form.cleaned_data["end_time"]
                 vehicle_number = form.cleaned_data["vehicle_number"]
                 utils.log_to_cloudwatch(f"Booking attempt: Spot ID {spot_id}, Start: {start_time}, End: {end_time}")
-                # Check availability
-                availability = utils.check_spot_availability(parking_spot, start_time, end_time)
+                # Fetch bookings for the parking spot
+                bookings = Booking.objects.filter(
+                    spot__parking_spot=parking_spot
+                ).values('start_time', 'end_time')
+                bookings_list = list(bookings)  # Convert to list of dicts
+                availability = utils.check_spot_availability(
+                    parking_spot=parking_spot.parking_name,
+                    start_time=start_time,
+                    end_time=end_time,
+                    total_spots=parking_spot.total_spots,
+                    bookings=bookings_list
+                )
                 utils.log_to_cloudwatch(f"Availability result: {availability}")
                 if not availability:
                     messages.error(request, f"No available spots at {parking_spot.parking_name}.")
@@ -92,7 +107,6 @@ def book_spot(request, spot_id):
                     return redirect("parking:parking_list")
                 duration_hours = (end_time - start_time).total_seconds() / 3600
                 total_price = Decimal(parking_spot.price) * Decimal(duration_hours)
-                # Get available spots
                 available_spots = parking_spot.available_spots(start_time=start_time, end_time=end_time)
                 utils.log_to_cloudwatch(f"Available spots count: {available_spots.count()}")
                 for spot in available_spots:
@@ -116,21 +130,43 @@ def book_spot(request, spot_id):
                 )
                 utils.log_to_cloudwatch(f"add_booking result: {result}")
                 if "message" in result and result["message"] == "Booking added successfully":
-                    # Before sending notification, ensure user is subscribed and has confirmed
                     subscription_arn = utils.subscribe_user(request.user.email)
                     if subscription_arn == 'PendingConfirmation':
-                        # If still pending confirmation, log and skip the notification
                         utils.log_to_cloudwatch(f"Notification to {request.user.email} pending confirmation", level='WARNING')
                         logger.info(f"User {request.user.email} has not confirmed their subscription yet.")
-                        messages.info(request, "Please confirm your email subscription to receive the booking confirmation.")
-                        return redirect("parking:booking_confirmation", booking_id=booking_id)
+                        messages.info(request, "Please confirm your email subscription to receive notifications.")
+                    else:
+                        booking_url = request.build_absolute_uri(reverse('parking:booking_confirmation', args=[booking_id]))
+                        notification_status = utils.notify_user(
+                            request.user.email,
+                            "Booking Confirmed",
+                            f"Your booking for {parking_spot.parking_name} is confirmed!\n"
+                            f"Booking ID: {booking_id}\n"
+                            f"Location: {parking_spot.location}\n"
+                            f"Spot: {available_spot.spot_number}\n"
+                            f"Vehicle: {vehicle_number}\n"
+                            f"Start: {start_time}\n"
+                            f"End: {end_time}\n"
+                            f"Price: €{total_price:.2f}\n"
+                            f"Status: pending\n"
+                            f"View Booking: {booking_url}"
+                        )
+                        if notification_status == "pending_confirmation":
+                            messages.info(request, "Please confirm your email subscription to receive notifications.")
+                        elif notification_status == "error":
+                            messages.warning(request, "Booking confirmed, but failed to send confirmation email. Please check your email settings.")
+                        else:
+                            messages.success(request, "Booking confirmed! A confirmation email has been sent.")
 
-                    # If already confirmed, proceed with notification
-                    utils.notify_user(
-                        request.user.email,
-                        "Booking Confirmed",
-                        f"Your booking for {parking_spot.parking_name} is confirmed!\nSpot: {available_spot.spot_number}\nStart: {start_time}\nEnd: {end_time}\nPrice: €{total_price:.2f}"
-                    )
+                    booking_details = {
+                        'parking_name': parking_spot.parking_name,
+                        'spot_number': available_spot.spot_number,
+                        'start_time': str(start_time),
+                        'end_time': str(end_time),
+                        'total_price': float(total_price)
+                    }
+                    utils.send_sqs_message(booking_id, request.user.email, booking_details)
+
                     utils.log_to_cloudwatch(f"Booking confirmed for {parking_spot.parking_name} by {request.user.email}")
                     utils.put_metric('BookingsCreated', 1)
                     messages.success(request, "Booking confirmed!")
@@ -157,8 +193,6 @@ def book_spot(request, spot_id):
         form = BookingForm()
     return render(request, "parking/book_spot.html", {"form": form, "spot": parking_spot})
 
-
-
 @login_required
 def modify_booking(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
@@ -174,12 +208,27 @@ def modify_booking(request, booking_id):
             if parking_spot.is_available(start_time, end_time) or (start_time == booking.start_time and end_time == booking.end_time):
                 result = update_booking(booking_id, start_time, end_time, vehicle_number, total_price)
                 if "message" in result and result["message"] == "Booking updated successfully":
-                    utils.notify_user(
+                    booking_url = request.build_absolute_uri(reverse('parking:booking_confirmation', args=[booking_id]))
+                    notification_status = utils.notify_user(
                         request.user.email,
                         "Booking Modified",
-                        f"Your booking for {parking_spot.parking_name} has been updated!\nSpot: {booking.spot.spot_number}\nStart: {start_time}\nEnd: {end_time}\nPrice: €{total_price:.2f}"
+                        f"Your booking for {parking_spot.parking_name} has been updated!\n"
+                        f"Booking ID: {booking_id}\n"
+                        f"Location: {parking_spot.location}\n"
+                        f"Spot: {booking.spot.spot_number}\n"
+                        f"Vehicle: {vehicle_number}\n"
+                        f"Start: {start_time}\n"
+                        f"End: {end_time}\n"
+                        f"Price: €{total_price:.2f}\n"
+                        f"Status: {booking.status}\n"
+                        f"View Booking: {booking_url}"
                     )
-                    messages.success(request, "Booking modified successfully!")
+                    if notification_status == "pending_confirmation":
+                        messages.info(request, "Please confirm your email subscription to receive notifications.")
+                    elif notification_status == "error":
+                        messages.warning(request, "Booking modified, but failed to send update notification. Please check your email settings.")
+                    else:
+                        messages.success(request, "Booking modified successfully! An update email has been sent.")
                     return redirect("parking:my_bookings")
                 messages.error(request, "Failed to modify booking.")
             else:
@@ -195,7 +244,10 @@ def modify_booking(request, booking_id):
 @login_required
 def booking_confirmation(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
-    return render(request, "parking/booking_confirmation.html", {"booking": booking})
+    return render(request, "parking/booking_confirmation.html", {
+        "booking": booking,
+        "qr_code_url": booking.qr_code_url,
+    })
 
 @login_required
 def my_bookings(request):
@@ -211,16 +263,32 @@ def booking_history(request):
 def cancel_booking(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
     if request.method == "POST" and request.POST.get("confirm") == "yes":
+        booking.status = 'cancelled'
+        booking.save()
         result = delete_booking(booking_id)
         if result:
-            utils.notify_user(
+            cancellation_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            notification_status = utils.notify_user(
                 request.user.email,
                 "Booking Cancelled",
-                f"Your booking for {booking.spot.parking_spot.parking_name} has been cancelled!\nSpot: {booking.spot.spot_number}"
+                f"Your booking for {booking.spot.parking_spot.parking_name} has been cancelled!\n"
+                f"Booking ID: {booking.booking_id}\n"
+                f"Location: {booking.spot.parking_spot.location}\n"
+                f"Spot: {booking.spot.spot_number}\n"
+                f"Vehicle: {booking.vehicle_number}\n"
+                f"Start: {booking.start_time}\n"
+                f"End: {booking.end_time}\n"
+                f"Cancelled On: {cancellation_time}\n"
+                f"Status: {booking.status}"
             )
+            if notification_status == "pending_confirmation":
+                messages.info(request, "Please confirm your email subscription to receive notifications.")
+            elif notification_status == "error":
+                messages.warning(request, "Booking cancelled, but failed to send cancellation email. Please check your email settings.")
+            else:
+                messages.success(request, "Booking canceled! A cancellation email has been sent.")
             utils.log_to_cloudwatch(f"Booking cancelled for {booking.spot.parking_spot.parking_name} by {request.user.email}")
             utils.put_metric('BookingsCancelled', 1)
-            messages.success(request, "Booking canceled!")
             return redirect("parking:my_bookings")
         messages.error(request, "Failed to cancel booking.")
         utils.log_to_cloudwatch("Cancellation failed", level='ERROR')
@@ -232,14 +300,21 @@ def signup(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            login_url = request.build_absolute_uri(reverse('login'))
+            parking_list_url = request.build_absolute_uri(reverse('parking:parking_list'))
             email_message = (
-                f"Dear {user.username},\n\n"
+                f"Dear {user.first_name or user.username} {user.last_name or ''},\n\n"
                 f"Welcome to the Parking App!\n\n"
                 f"Account Details:\n"
                 f"Username: {user.username}\n"
+                f"First Name: {user.first_name or 'Not set'}\n"
+                f"Last Name: {user.last_name or 'Not set'}\n"
                 f"Email: {user.email}\n"
                 f"Account Created On: {timezone.now()}\n\n"
-                f"You can now log in and start booking parking spots. Enjoy our service!"
+                f"You can now log in and start booking parking spots:\n"
+                f"Login: {login_url}\n"
+                f"Explore Parking Spots: {parking_list_url}\n\n"
+                f"Enjoy our service!"
             )
             notification_status = utils.notify_user(
                 user.email,
@@ -248,10 +323,11 @@ def signup(request):
             )
             login(request, user)
             if notification_status == "pending_confirmation":
-                messages.info(request, "Please check your email and confirm your SNS subscription to receive notifications.")
+                messages.warning(request, "A confirmation email has been sent to your email address. Please confirm your subscription to receive notifications.")
             elif notification_status == "error":
                 messages.warning(request, "Account created, but failed to send welcome email. Please check your email settings.")
-            messages.success(request, "Account created! Please check your email.")
+            else:
+                messages.success(request, "Account created! A welcome email has been sent to your email address.")
             return redirect("parking:parking_list")
     else:
         form = CustomUserCreationForm()
@@ -273,3 +349,51 @@ def daily_bookings(request):
         "total_bookings": total_bookings,
         "date": today
     })
+
+@staff_member_required
+def verify_booking(request, booking_id):
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+    if request.method == 'POST':
+        if booking.status == 'pending':
+            booking.status = 'verified'
+            booking.save()
+            verification_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            booking_url = request.build_absolute_uri(reverse('parking:booking_confirmation', args=[booking.booking_id]))
+            message_body = (
+                f"Your booking at {booking.spot.parking_spot.parking_name} has been verified!\n"
+                f"Booking ID: {booking.booking_id}\n"
+                f"Location: {booking.spot.parking_spot.location}\n"
+                f"Spot: {booking.spot.spot_number}\n"
+                f"Vehicle: {booking.vehicle_number}\n"
+                f"Start: {booking.start_time}\n"
+                f"End: {booking.end_time}\n"
+                f"Price: €{booking.total_price:.2f}\n"
+                f"Status: {booking.status}\n"
+                f"Verified On: {verification_time}\n"
+                f"View Booking: {booking_url}"
+            )
+            notification_status = utils.notify_user(
+                booking.user.email,
+                "Booking Verified",
+                message_body
+            )
+            utils.log_to_cloudwatch(f"Booking {booking_id} verified by admin {request.user.email}")
+            utils.put_metric('BookingsVerified', 1)
+            if notification_status == "pending_confirmation":
+                messages.info(request, f"User {booking.user.email} has not confirmed their subscription yet. Please confirm your email subscription to receive notifications.")
+            elif notification_status == "error":
+                messages.warning(request, "Failed to send verification notification to the user. Please check email settings.")
+            else:
+                messages.success(request, f"Booking {booking_id} has been verified successfully. A verification email has been sent.")
+        else:
+            messages.warning(request, f"Booking {booking_id} is already {booking.status}.")
+        return redirect('parking:verify_booking', booking_id=booking_id)
+
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'parking/verify_booking.html', context)
+
+@staff_member_required
+def verify_booking_scan(request):
+    return render(request, 'parking/verify_booking_scan.html')

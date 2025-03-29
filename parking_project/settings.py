@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'Parking-app-env-new.eba-6gs3pgjb.us-east-1.elasticbeanstalk.com',  # Update to your new EB environment URL
+    'parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com',
     '.elasticbeanstalk.com',
 ]
 
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'storages',  # For S3 storage
+    'storages',
     'parking.apps.ParkingConfig',
 ]
 
@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': 'x23417498_db',
         'USER': 'admin',
         'PASSWORD': 'zxcvbnm1234567',
-        'HOST': 'parkingdb-instance.cqxsqm684dqh.us-east-1.rds.amazonaws.com',
+        'HOST': 'parkingdb-instance.cb3ysdqsmzfo.us-east-1.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
@@ -95,7 +95,7 @@ AWS_REGION = 'us-east-1'
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not needed here
 
 # S3 settings for media and static files
-AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-bucket'  # Updated to match the bucket you created
+AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-s3'  # Updated to match the bucket you created
 AWS_S3_REGION_NAME = 'us-east-1'
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'  # Updated to standard S3 domain format
 AWS_S3_FILE_OVERWRITE = False
@@ -106,12 +106,12 @@ MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Static files (using the same bucket)
-AWS_STATIC_BUCKET_NAME = 'x23417498-parking-bucket'  # Updated to match the bucket you created
+AWS_STATIC_BUCKET_NAME = 'x23417498-parking-s3'  # Updated to match the bucket you created
 STATIC_URL = f'https://{AWS_STATIC_BUCKET_NAME}.s3.amazonaws.com/static/'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # SNS configuration
-SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:337825745507:ParkingNotifications'  # Updated to the new topic ARN
+SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:296779434624:ParkingNotifications'
 
 # CloudWatch logging (already configured in ParkingUtils.log_to_cloudwatch)
 # Log group: ParkingLogs, Log stream: ApplicationStream (matches your script)
@@ -140,3 +140,5 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=not IS_LOCAL, ca
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+NOTIFICATION_FALLBACK_METHOD = 'cloudwatch'

@@ -2,56 +2,49 @@
 {% block title %}Booking Confirmation{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Booking Confirmed!</h1>
-        <div class="confirmation-box">
-            <p>Your booking details:</p>
-            <ul>
-                <li><span>Reference ID:</span> {{ booking.booking_id }}</li>
-                <li><span>Spot:</span> {{ booking.spot.parking_spot.parking_name }}</li>
-                <li><span>Number:</span> {{ booking.spot.spot_number }}</li>
-                <li><span>Location:</span> {{ booking.spot.parking_spot.location }}</li>
-                <li><span>Start:</span> {{ booking.start_time }}</li>
-                <li><span>End:</span> {{ booking.end_time }}</li>
-                <li><span>Vehicle:</span> {{ booking.vehicle_number }}</li>
-                <li><span>Price:</span> €{{ booking.total_price|floatformat:2 }}</li>
-            </ul>
-            <a href="{% url 'parking:my_bookings' %}" class="btn btn-primary">My Bookings</a>
+        <h1 class="text-success">Booking Confirmed!</h1>
+        <div class="card bg-gradient-success">
+            <div class="card-body">
+                <h3 class="card-title">Your Booking Details</h3>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Reference ID:</span> {{ booking.booking_id }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Spot:</span> {{ booking.spot.parking_spot.parking_name }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Number:</span> {{ booking.spot.spot_number }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Location:</span> {{ booking.spot.parking_spot.location }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Start:</span> {{ booking.start_time }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>End:</span> {{ booking.end_time }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Vehicle:</span> {{ booking.vehicle_number }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Price:</span> €{{ booking.total_price|floatformat:2 }}
+                    </li>
+                </ul>
+                <div class="text-center mt-4">
+                    <h3>QR Code for Verification</h3>
+                    {% if qr_code_url %}
+                        <img src="{{ qr_code_url }}" alt="QR Code for Booking {{ booking.booking_id }}" class="img-fluid rounded border border-light" style="max-width: 200px;">
+                        <p class="mt-2">Scan this QR code at the parking area to verify your booking.</p>
+                    {% else %}
+                        <p>Your QR code is being generated. Please check your email for the QR code link shortly.</p>
+                    {% endif %}
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{% url 'parking:my_bookings' %}" class="btn btn-primary">My Bookings</a>
+                </div>
+            </div>
         </div>
     </div>
-    <style>
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #2ecc71;
-            text-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
-        }
-        .confirmation-box {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-            padding: 2rem;
-            border-radius: 12px;
-            margin-top: 2rem;
-        }
-        .confirmation-box ul {
-            list-style: none;
-            padding: 0;
-        }
-        .confirmation-box li {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 0;
-        }
-        .btn-primary {
-            display: block;
-            margin: 2rem auto 0;
-            background: #00ddeb;
-            color: #1e3c72;
-        }
-    </style>
 {% endblock %}

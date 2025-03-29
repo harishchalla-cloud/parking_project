@@ -2,49 +2,16 @@
 {% block title %}Account Created - Parking App{% endblock %}
 {% block content %}
     <div class="container">
-        <h1>Account Created Successfully!</h1>
-        <p>Welcome, <strong>{{ user.username }}</strong>! Your account has been created.</p>
-        <p>
-            <a href="{% url 'login' %}" class="button">Login</a>
-            <a href="{% url 'parking:parking_list' %}" class="button">View Parking Spots</a>
-        </p>
-        <p><a href="{% url 'parking:signup' %}" class="button">Create another account</a></p>
+        <h1 class="text-success">Account Created Successfully!</h1>
+        <div class="card">
+            <div class="card-body text-center">
+                <p>Welcome, <strong>{{ user.username }}</strong>! Your account has been created.</p>
+                <div class="d-flex justify-content-center gap-3 mb-3">
+                    <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                    <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">View Parking Spots</a>
+                </div>
+                <p><a href="{% url 'parking:signup' %}" class="btn btn-secondary">Create another account</a></p>
+            </div>
+        </div>
     </div>
-
-    <style>
-        .container {
-            max-width: 600px;
-        }
-        h1 {
-            color: #4CAF50;
-        }
-        p {
-            font-size: 1.1em;
-            text-align: center;
-            color: #555;
-            margin: 10px 0;
-        }
-        .button {
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1.1em;
-            margin: 10px;
-            transition: background-color 0.3s;
-        }
-        .button:hover {
-            background-color: #45a049;
-        }
-        .link {
-            color: #007bff;
-            text-decoration: none;
-            font-size: 1em;
-        }
-        .link:hover {
-            text-decoration: underline;
-        }
-    </style>
 {% endblock %}

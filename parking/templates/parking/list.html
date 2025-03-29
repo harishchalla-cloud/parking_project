@@ -3,127 +3,33 @@
 {% block content %}
     <div class="container">
         <h1>Explore Parking Spots</h1>
-        <form method="get" class="search-form">
-            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by location or name...">
-            <button type="submit">Search</button>
+        <form method="get" class="d-flex justify-content-center mb-4">
+            <input type="text" name="q" value="{{ query|default:'' }}" placeholder="Search by location or name..." class="form-control me-2" style="max-width: 300px;">
+            <button type="submit" class="btn btn-primary">Search</button>
         </form>
-        <div class="spot-grid">
+        <div class="row">
             {% for spot in spots %}
-                <div class="spot-card">
-                    {% if spot.image_url %}
-                        <img src="{{ spot.image_url }}" alt="{{ spot.parking_name }}" class="spot-image">
-                    {% endif %}
-                    <h2>{{ spot.parking_name }}</h2>
-                    <div class="spot-details">
-                        <p><strong>Location:</strong> {{ spot.location }}</p>
-                        <p><strong>Price:</strong> €{{ spot.price|floatformat:2 }}/hour</p>
-                        <p><strong>Available:</strong> {{ spot.available_spots_count }}</p>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            {% if spot.image_url %}
+                                <img src="{{ spot.image_url }}" alt="{{ spot.parking_name }}" class="img-fluid rounded mb-3" style="height: 200px; object-fit: cover;">
+                            {% endif %}
+                            <h3 class="card-title text-primary">{{ spot.parking_name }}</h3>
+                            <p><strong>Location:</strong> {{ spot.location }}</p>
+                            <p><strong>Price:</strong> €{{ spot.price|floatformat:2 }}/hour</p>
+                            <p><strong>Available:</strong> {{ spot.available_spots_count }}</p>
+                            {% if spot.is_available %}
+                                <a href="{% url 'parking:book_spot' spot.spot_id %}" class="btn btn-primary">Book Now</a>
+                            {% else %}
+                                <span class="text-danger">Fully Booked</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if spot.is_available %}
-                        <a href="{% url 'parking:book_spot' spot.spot_id %}" class="btn btn-primary">Book Now</a>
-                    {% else %}
-                        <span class="unavailable">Fully Booked</span>
-                    {% endif %}
                 </div>
             {% empty %}
-                <p class="no-spots">No parking spots found.</p>
+                <p class="text-muted text-center col-12">No parking spots found.</p>
             {% endfor %}
         </div>
     </div>
-    <style>
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        h1 {
-            text-align: center;
-            color: #fff;
-            margin-bottom: 2rem;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .search-form {
-            display: flex;
-            max-width: 500px;
-            margin: 0 auto 2rem;
-            gap: 1rem;
-        }
-        .search-form input {
-            flex: 1;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 25px;
-            background: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            color: #2c3e50;
-        }
-        .search-form button {
-            padding: 0.8rem 2rem;
-            background: #00ddeb;
-            color: #1b14d8;
-            border: none;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-        .search-form button:hover { background: #00b7c2; }
-        .spot-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        .spot-card {
-            background: #fff;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            text-align: center;
-            color: #2c3e50;
-        }
-        .spot-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        .spot-image {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            image-rendering: high-quality;
-        }
-        .spot-details {
-            margin-bottom: 1.5rem; /* Space between details and button */
-        }
-        .spot-details p {
-            margin: 0.5rem 0; /* Spacing between detail lines */
-        }
-        .btn-primary {
-            display: inline-block;
-            background: #195ec7;
-            color: #e1cf18;
-            padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 25px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            background: #00b7c2;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 221, 235, 0.4);
-        }
-        .unavailable {
-            color: #e74c3c;
-            font-weight: 600;
-            display: block;
-            margin-top: 1.5rem; /* Consistent spacing */
-        }
-        .no-spots {
-            text-align: center;
-            color: #fff;
-            font-size: 1.5rem;
-            padding: 2rem;
-        }
-    </style>
 {% endblock %}

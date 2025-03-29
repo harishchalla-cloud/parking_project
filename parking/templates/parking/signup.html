@@ -3,42 +3,14 @@
 {% block content %}
     <div class="container">
         <h1>Join Us</h1>
-        <form method="post" class="signup-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Sign Up</button>
-        </form>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+            </div>
+        </div>
     </div>
-    <style>
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #9b59b6;
-        }
-        .signup-form p {
-            margin: 1.5rem 0;
-        }
-        .signup-form input {
-            width: 100%;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        .btn-primary {
-            background: #9b59b6;
-            color: #fff;
-            width: 100%;
-        }
-        .btn-primary:hover {
-            background: #8e44ad;
-        }
-    </style>
 {% endblock %}

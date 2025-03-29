@@ -90,6 +90,12 @@ class Spot(models.Model):
         return booked
 
 class Booking(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('cancelled', 'Cancelled'),
+    )
+
     booking_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
@@ -97,6 +103,8 @@ class Booking(models.Model):
     end_time = models.DateTimeField()
     vehicle_number = models.CharField(max_length=20)
     total_price = models.DecimalField(max_digits=6, decimal_places=2)
+    qr_code_url = models.URLField(max_length=500, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     class Meta:
         db_table = 'Bookings'

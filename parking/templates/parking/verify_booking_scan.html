@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container">
+        <h2>Scan QR Code for Verification</h2>
+        <div class="card">
+            <div class="card-body text-center">
+                <p>Use your device's camera to scan the QR code of a booking.</p>
+                <video id="video" width="300" height="200" class="border border-dark mb-3"></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <p id="scan-result" class="text-muted"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const canvas = canvasElement.getContext('2d');
+        const scanResult = document.getElementById('scan-result');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+                requestAnimationFrame(tick);
+            })
+            .catch(function(err) {
+                scanResult.innerText = "Error accessing camera: " + err;
+            });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    const url = code.data;
+                    const urlParts = url.replace(/\/$/, '').split('/');
+                    const bookingId = urlParts.pop();
+                    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                    if (!uuidRegex.test(bookingId)) {
+                        scanResult.innerText = `Invalid Booking ID in QR code: ${bookingId}`;
+                        return;
+                    }
+                    scanResult.innerText = `Scanned QR Code: Booking ID ${bookingId}`;
+                    window.location.href = `/parking/verify/${bookingId}/`;
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+    </script>
+{% endblock %}

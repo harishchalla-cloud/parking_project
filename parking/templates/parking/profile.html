@@ -3,46 +3,24 @@
 {% block content %}
     <div class="container">
         <h1>Your Profile</h1>
-        <div class="profile-card">
-            <p><strong>Welcome, {{ user.username }}!</strong></p>
-            <ul>
-                <li><span>First Name:</span> {{ user.first_name|default:"Not set" }}</li>
-                <li><span>Last Name:</span> {{ user.last_name|default:"Not set" }}</li>
-                <li><span>Email:</span> {{ user.email|default:"Not set" }}</li>
-            </ul>
-            <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">Back to Spots</a>
+        <div class="card bg-gradient-primary">
+            <div class="card-body">
+                <p><strong>Welcome, {{ user.username }}!</strong></p>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>First Name:</span> {{ user.first_name|default:"Not set" }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Last Name:</span> {{ user.last_name|default:"Not set" }}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Email:</span> {{ user.email|default:"Not set" }}
+                    </li>
+                </ul>
+                <div class="text-center mt-4">
+                    <a href="{% url 'parking:parking_list' %}" class="btn btn-primary">Back to Spots</a>
+                </div>
+            </div>
         </div>
     </div>
-    <style>
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        h1 {
-            text-align: center;
-            color: #f1c40f;
-        }
-        .profile-card {
-            background: linear-gradient(45deg, #f1c40f, #69af46);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        .profile-card ul {
-            list-style: none;
-            padding: 0;
-        }
-        .profile-card li {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 0;
-        }
-        .btn-primary {
-            background: #3498db;
-            color: #fff;
-            display: block;
-            margin: 2rem auto 0;
-        }
-    </style>
 {% endblock %}

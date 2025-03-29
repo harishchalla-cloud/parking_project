@@ -24,34 +24,15 @@ jobs:
 
       - name: Generate deployment package
         run: |
-          ls -la  # Debug: List files to verify structure
-          zip -r deploy.zip . -x "*.git*" "*.github*" "venv/*" ".env"
-          ls -la deploy.zip  # Debug: Verify zip file
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: us-east-1
-
-      - name: Set environment variables
-        run: |
-          aws elasticbeanstalk update-environment \
-            --application-name parking-app \
-            --environment-name Parking-app-env-new \
-            --option-settings \
-              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_PASSWORD,Value=${{ secrets.DB_PASSWORD }} \
-              Namespace=aws:elasticbeanstalk:application:environment,OptionName=SECRET_KEY,Value=${{ secrets.SECRET_KEY }} \
-            --region us-east-1
+          zip -r deploy.zip . -x "*.git*" "*.github*" "venv/*"
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v22
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: parking-app
-          environment_name: Parking-app-env-new
+          application_name: parkingapp
+          environment_name: Parkingapp-env
           version_label: ${{ github.sha }}
           region: us-east-1
           deployment_package: deploy.zip

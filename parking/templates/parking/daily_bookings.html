@@ -1,29 +1,47 @@
-{% extends 'base.html' %}
-{% block title %}Daily Bookings{% endblock %}
+{% extends "base.html" %}
 {% block content %}
     <div class="container">
-        <h1>Bookings for {{ date }}</h1>
+        <h2>Daily Bookings - {{ date }}</h2>
         <p><strong>Total Bookings:</strong> {{ total_bookings }}</p>
-        <ul class="booking-list">
-            {% for booking in bookings %}
-                <li class="booking-item">
-                    <div class="booking-info">
-                        <span>{{ booking.spot.parking_spot.parking_name }}</span>
-                        <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
-                        <span>User: {{ booking.user.username }}</span>
-                    </div>
-                </li>
-            {% empty %}
-                <li class="no-bookings">No bookings today.</li>
-            {% endfor %}
-        </ul>
+        {% if bookings %}
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>User</th>
+                                <th>Parking Name</th>
+                                <th>Spot Number</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ booking.booking_id }}</td>
+                                    <td>{{ booking.user.email }}</td>
+                                    <td>{{ booking.spot.parking_spot.parking_name }}</td>
+                                    <td>{{ booking.spot.spot_number }}</td>
+                                    <td>{{ booking.start_time }}</td>
+                                    <td>{{ booking.end_time }}</td>
+                                    <td>€{{ booking.total_price }}</td>
+                                    <td>{{ booking.status }}</td>
+                                    <td>
+                                        <a href="{% url 'parking:verify_booking' booking_id=booking.booking_id %}" class="btn btn-info btn-sm">Verify</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-muted text-center">No bookings for today.</p>
+        {% endif %}
     </div>
-    <style>
-        .container { max-width: 900px; margin: 0 auto; padding: 2rem; background: #fff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
-        h1 { text-align: center; color: #e67e22; }
-        .booking-list { list-style: none; padding: 0; }
-        .booking-item { padding: 1.5rem; background: #ecf0f1; border-radius: 10px; margin-bottom: 1rem; }
-        .booking-info { display: flex; flex-direction: column; gap: 0.5rem; }
-        .no-bookings { text-align: center; padding: 2rem; }
-    </style>
 {% endblock %}
