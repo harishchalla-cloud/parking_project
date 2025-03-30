@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import ParkingSpot, Booking, Spot
-from parking_utils_pkg import ParkingUtils
+from parking_utils_aec import ParkingUtils
 import logging
 import os
 import tempfile

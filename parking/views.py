@@ -6,7 +6,7 @@ from django.db.models import Q
 from .models import ParkingSpot, Booking, Spot
 from .forms import BookingForm, CustomUserCreationForm
 from .crud_operations import add_booking, update_booking, delete_booking
-from parking_utils_pkg import ParkingUtils
+from parking_utils_aec import ParkingUtils
 from decimal import Decimal
 import uuid
 import boto3
