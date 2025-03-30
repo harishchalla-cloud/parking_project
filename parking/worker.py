@@ -14,7 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'parking_project.settings')
 django.setup()
 
 from parking.models import Booking
-from parking_utils_pkg import ParkingUtils
+from parking_utils_aec import ParkingUtils
 
 # Set up logging
 logger = logging.getLogger(__name__)
