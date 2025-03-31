@@ -28,7 +28,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com',
     '.elasticbeanstalk.com',
-    '3.224.197.135'
+    '3.224.197.135',
+    '*'
 ]
 
 logger.info(f"DEBUG={DEBUG}, IS_LOCAL={IS_LOCAL}, ALLOWED_HOSTS={ALLOWED_HOSTS}")
@@ -143,3 +144,4 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 NOTIFICATION_FALLBACK_METHOD = 'cloudwatch'
+

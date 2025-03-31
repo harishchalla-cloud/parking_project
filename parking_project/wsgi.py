@@ -14,3 +14,8 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'parking_project.settings')
 
 application = get_wsgi_application()
+import sys
+import os
+
+sys.path.append('/var/app/current')
+sys.path.append('/var/app/current/parking')  # Adjust this path according to your project structure
