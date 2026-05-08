@@ -1,37 +1,23 @@
-"""
-Django settings for parking_project project.
-"""
-
 import os
 import sys
 import logging
 from pathlib import Path
-from decouple import config
 import boto3
 import pymysql
 
 # Install pymysql as MySQLdb for Django
 pymysql.install_as_MySQLdb()
 
-# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 IS_LOCAL = 'runserver' in sys.argv
 logger = logging.getLogger(__name__)
 
-# Update ALLOWED_HOSTS for the new Elastic Beanstalk environment
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com',
-    '.elasticbeanstalk.com',
-    '3.224.197.135',
-    '*'
-]
-
+# ALLOWED_HOSTS from environment (comma-separated)
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 logger.info(f"DEBUG={DEBUG}, IS_LOCAL={IS_LOCAL}, ALLOWED_HOSTS={ALLOWED_HOSTS}")
 
 INSTALLED_APPS = [
@@ -79,11 +65,11 @@ WSGI_APPLICATION = 'parking_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'x23417498_db',
-        'USER': 'admin',
-        'PASSWORD': 'zxcvbnm1234567',
-        'HOST': 'parkingdb-instance.cb3ysdqsmzfo.us-east-1.rds.amazonaws.com',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', ''),
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', ''),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'sql_mode': 'STRICT_TRANS_TABLES',
@@ -92,14 +78,10 @@ DATABASES = {
 }
 
 # AWS settings
-AWS_REGION = 'us-east-1'
-# Remove explicit AWS credentials since boto3 will use the default profile
-# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not needed here
-
-# S3 settings for media and static files
-AWS_STORAGE_BUCKET_NAME = 'x23417498-parking-s3'  # Updated to match the bucket you created
-AWS_S3_REGION_NAME = 'us-east-1'
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'  # Updated to standard S3 domain format
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', '')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = 'private'
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
@@ -108,16 +90,14 @@ MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Static files (using the same bucket)
-AWS_STATIC_BUCKET_NAME = 'x23417498-parking-s3'  # Updated to match the bucket you created
+AWS_STATIC_BUCKET_NAME = os.environ.get('AWS_STATIC_BUCKET_NAME', AWS_STORAGE_BUCKET_NAME)
 STATIC_URL = f'https://{AWS_STATIC_BUCKET_NAME}.s3.amazonaws.com/static/'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # SNS configuration
-SNS_TOPIC_ARN = 'arn:aws:sns:us-east-1:296779434624:ParkingNotifications'
+SNS_TOPIC_ARN = os.environ.get('SNS_TOPIC_ARN', '')
 
-# CloudWatch logging (already configured in ParkingUtils.log_to_cloudwatch)
-# Log group: ParkingLogs, Log stream: ApplicationStream (matches your script)
-
+# Authentication and other settings
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -137,11 +117,13 @@ LOGIN_REDIRECT_URL = '/parking/'
 LOGIN_URL = '/accounts/login/'
 
 # Security settings for production
-SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=not IS_LOCAL, cast=bool)
-SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
-CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=not IS_LOCAL, cast=bool)
+def env_bool(key, fallback):
+    return os.environ.get(key, str(fallback)) == 'True'
+
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', not IS_LOCAL)
+SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', not IS_LOCAL)
+CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', not IS_LOCAL)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 NOTIFICATION_FALLBACK_METHOD = 'cloudwatch'
-
