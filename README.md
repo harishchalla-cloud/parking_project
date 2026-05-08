@@ -53,19 +53,19 @@ The backend leverages [Django](https://www.djangoproject.com/), while AWS hosts 
 
 ### User Experience
 
-| Parking Spot Explorer                | Login                           | Registration                         |
-|--------------------------------------|----------------------------------|--------------------------------------|
-| ![Explore Parking Spots](image1)     | ![Login Form](image2)           | ![Sign-Up Form](image3)              |
+| Parking Spot Explorer            | Login                        | Registration                   |
+|----------------------------------|------------------------------|-------------------------------|
+| ![Explore Parking Spots](docs/Picture1.png) | ![Login Form](docs/Picture2.jpg) | ![Sign-Up Form](docs/Picture3.jpg) |
 
 ### Administrator & Booking Flow
 
-| Architecture Diagram                 | CI/CD Workflow                   |
-|--------------------------------------|----------------------------------|
-| ![System Architecture](image4)       | ![CI/CD Flow](image5)            |
+| Architecture Diagram          | CI/CD Workflow                |
+|------------------------------|-------------------------------|
+| ![System Architecture](docs/Picture4.jpg) | ![CI/CD Flow](docs/Picture5.jpg) |
 
-| GitHub Actions Dashboard             | QR Scan for Verification         | Booking Confirmation with QR         |
-|--------------------------------------|----------------------------------|--------------------------------------|
-| ![Actions Workflow](image6)          | ![Scan QR Code](image7)          | ![Booking QR Confirmation](image8)   |
+| GitHub Actions Dashboard      | QR Scan for Verification      | Booking Confirmation with QR   |
+|------------------------------|-------------------------------|-------------------------------|
+| ![Actions Workflow](docs/Picture6.jpg) | ![Scan QR Code](docs/Picture7.png) | ![Booking QR Confirmation](docs/Picture8.jpg) |
 
 ---
 
@@ -95,7 +95,7 @@ The backend leverages [Django](https://www.djangoproject.com/), while AWS hosts 
 
 **Fully automated deployment using GitHub Actions and AWS Elastic Beanstalk:**
 
-![CI/CD Workflow Overview](image5)
+![CI/CD Workflow Overview](docs/Picture5.jpg)
 
 - **Push code to GitHub → GitHub Actions triggers pipeline**
 - **Builds/tests Django app**
@@ -103,7 +103,7 @@ The backend leverages [Django](https://www.djangoproject.com/), while AWS hosts 
 - **Artifacts and static/media files pushed to S3**
 - **Automatic error/status reporting and monitoring**
 
-![Actions Dashboard Screenshot](image6)
+![Actions Dashboard Screenshot](docs/Picture6.jpg)
 
 You can explore or adapt `.github/workflows/deploy.yml` for your own AWS deployments!
 
