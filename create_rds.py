@@ -3,8 +3,8 @@ import boto3
 from botocore.exceptions import ClientError
 
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
-RDS_IDENTIFIER = os.environ.get('RDS_IDENTIFIER')             # Now from environment
-DB_NAME = os.environ.get('DB_NAME')                           # Now from environment
+RDS_IDENTIFIER = os.environ.get('RDS_IDENTIFIER')           
+DB_NAME = os.environ.get('DB_NAME')                        
 MASTER_USERNAME = os.environ.get('MASTER_USERNAME')
 MASTER_PASSWORD = os.environ.get('MASTER_PASSWORD')
 INSTANCE_CLASS = os.environ.get('INSTANCE_CLASS', 'db.t3.micro')
