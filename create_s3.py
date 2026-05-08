@@ -1,20 +1,33 @@
 import boto3
+import os
 from botocore.exceptions import ClientError
 
-AWS_REGION = 'us-east-1'
-BUCKET_NAME = 'x23417498-parking-s3'
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+BUCKET_NAME = os.getenv('BUCKET_NAME')
+if not BUCKET_NAME:
+    raise ValueError("Environment variable BUCKET_NAME must be set")
 
-# Initialize S3 client using the default profile
-s3_client = boto3.client('s3', region_name=AWS_REGION)
+aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+aws_session_token = os.getenv('AWS_SESSION_TOKEN')
+
+client_kwargs = {
+    "region_name": AWS_REGION
+}
+if aws_access_key_id and aws_secret_access_key:
+    client_kwargs["aws_access_key_id"] = aws_access_key_id
+    client_kwargs["aws_secret_access_key"] = aws_secret_access_key
+    if aws_session_token:
+        client_kwargs["aws_session_token"] = aws_session_token
+
+s3_client = boto3.client('s3', **client_kwargs)
 
 def create_s3_bucket():
     try:
         print(f"Creating S3 bucket: {BUCKET_NAME}")
-        # S3 buckets in us-east-1 don't require LocationConstraint
         response = s3_client.create_bucket(Bucket=BUCKET_NAME)
         print(f"S3 bucket created: {response['Location']}")
 
-        # Update public access settings
         s3_client.put_public_access_block(
             Bucket=BUCKET_NAME,
             PublicAccessBlockConfiguration={
@@ -26,7 +39,6 @@ def create_s3_bucket():
         )
         print("Block Public Access settings updated.")
 
-        # Apply bucket policy for public read access
         s3_client.put_bucket_policy(
             Bucket=BUCKET_NAME,
             Policy=f'''{{
