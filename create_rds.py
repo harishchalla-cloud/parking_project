@@ -1,17 +1,19 @@
+import os
 import boto3
 from botocore.exceptions import ClientError
 
-AWS_REGION = 'us-east-1'
-RDS_IDENTIFIER = 'parkingdb-instance'
-DB_NAME = 'x23417498_db'
-MASTER_USERNAME = 'admin'
-MASTER_PASSWORD = 'zxcvbnm1234567'
-INSTANCE_CLASS = 'db.t3.micro'
-ENGINE = 'mysql'
-ENGINE_VERSION = '8.0.36'
-STORAGE = 20
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+RDS_IDENTIFIER = os.environ.get('RDS_IDENTIFIER')             # Now from environment
+DB_NAME = os.environ.get('DB_NAME')                           # Now from environment
+MASTER_USERNAME = os.environ.get('MASTER_USERNAME')
+MASTER_PASSWORD = os.environ.get('MASTER_PASSWORD')
+INSTANCE_CLASS = os.environ.get('INSTANCE_CLASS', 'db.t3.micro')
+ENGINE = os.environ.get('ENGINE', 'mysql')
+ENGINE_VERSION = os.environ.get('ENGINE_VERSION', '8.0.36')
+STORAGE = int(os.environ.get('STORAGE', 20))
+VPC_SECURITY_GROUP_IDS = os.environ.get('VPC_SECURITY_GROUP_IDS', 'sg-07220fa92a4ea61b0').split(',')
 
-# Initialize RDS client using the default profile
+# Initialize RDS client using the configured region
 rds_client = boto3.client('rds', region_name=AWS_REGION)
 
 def create_rds_instance():
@@ -26,14 +28,14 @@ def create_rds_instance():
             Engine=ENGINE,
             EngineVersion=ENGINE_VERSION,
             AllocatedStorage=STORAGE,
-            VpcSecurityGroupIds=['sg-07220fa92a4ea61b0'],
+            VpcSecurityGroupIds=VPC_SECURITY_GROUP_IDS,
             PubliclyAccessible=True,
             MultiAZ=False,
             StorageType='gp2',
             BackupRetentionPeriod=7,
             Tags=[
-                {'Key': 'Name', 'Value': 'ParkingDB'},
-                {'Key': 'Project', 'Value': 'ParkingProject'},
+                {'Key': 'Name', 'Value': os.environ.get('TAG_NAME', 'ParkingDB')},
+                {'Key': 'Project', 'Value': os.environ.get('TAG_PROJECT', 'ParkingProject')},
             ]
         )
         print(f"DB instance created with identifier: {response['DBInstance']['DBInstanceIdentifier']}")
@@ -52,4 +54,4 @@ def create_rds_instance():
 if __name__ == "__main__":
     endpoint = create_rds_instance()
     if endpoint:
-        print(f"Configuration: DB Name={DB_NAME}, Username={MASTER_USERNAME}, Password={MASTER_PASSWORD}, Region={AWS_REGION}, Endpoint={endpoint}")
+        print(f"Configuration: DB Name=<hidden>, Username=<hidden>, Password=<hidden>, Region={AWS_REGION}, Endpoint={endpoint}")
