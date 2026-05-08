@@ -33,7 +33,7 @@ def subscribe_email(topic_arn, email):
 
 def main():
     topic_name = 'ParkingNotifications'
-    test_email = 'challaharish15@gmail.com'  # Replace with your email
+    test_email = 'abcdefg@gmail.com'  # Replace with your email
 
     # Create topic
     topic_arn = create_sns_topic(topic_name)
