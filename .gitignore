@@ -1,5 +1,48 @@
+# .gitignore for Python, Django, IDEs, secrets, and logs
 
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment folders
+venv/
+ENV/
+env/
+.venv/
+
+# IDE folders
+.idea/
+.vscode/
+
+# Django files
+db.sqlite3
+*.pot
+
+# Static files
+staticfiles/
+
+# Environment variable files
+.env
+.env.*
+
+# Key files
+*.pem
+
+# Logs
+*.log
+*.err
+worker.log
+worker.err
+
+# OS and miscellaneous
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.bak
+*.swp
+
+# Test & coverage
+coverage.xml
+htmlcov/
