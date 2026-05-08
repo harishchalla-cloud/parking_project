@@ -1,8 +1,6 @@
 # Parking Management Application
 
-A **cloud-native Django web application** enabling users to search, book, and manage parking spots with ease—integrating AWS services, modular utilities, and CI/CD automation for seamless operation and scale.
-
-**Live Demo:** [ParkingApp (Elastic Beanstalk)](http://parkingapp-env.eba-pjwcyf2j.us-east-1.elasticbeanstalk.com/parking/)
+A **cloud-native Django web application** enabling users to search, book, and manage parking spots with ease—integrating AWS services, modular utilities, and CI/CD automation for seamless operations.
 
 ---
 
@@ -168,7 +166,7 @@ You can explore or adapt `.github/workflows/deploy.yml` for your own AWS deploym
 
 ## Learnings & Reflection
 
-> “Building this application deepened my expertise in Django, AWS services, and end-to-end CI/CD. I learned the value of modular code and modern DevOps, as well as the practicalities of deploying and monitoring cloud applications at scale.”  
+> “Building this application deepened my expertise in Django, AWS services, and end-to-end CI/CD. I learned the value of modular code and modern DevOps, as well as the practicalities of deploying real projects in the cloud.”
 > — Harish Challa
 
 ---
